@@ -1,0 +1,8 @@
+30	#discretization
+10	#replicate
+200	#population
+0,17,60	#generation
+0.05		#selection
+30		#depth
+10		#spnum
+f

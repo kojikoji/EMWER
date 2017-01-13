@@ -72,33 +72,25 @@ vector<vector<vector<double > > > read_sim_file(string filename,bool aflag=false
     }
     n++;
   }
-  //cout<<"n"<<n<<endl;
   return(data);
 }
 void sample_register(WFE& wfe,vector<vector<double> > one_record,vector<vector<double> > one_recordc,int genpt,bool add_f=false){
-  //wfe.data_clear();
   for(int i = 0;i < one_record.size();i++){
     vector<double> data = one_record[i];
     vector<double> datac;
-    //cout<<data.size()<<endl;
     if(one_recordc.size() > 0){
        datac = one_recordc[i];
     }else{
       datac = {};
     }
-    //double time = 1;
     vector<int> apl,bpl,acpl,bcpl;
     vector<double> tpl,tcpl;
-    //double time = (double)gen_num/genpt;
-    //cout <<"d " <<time<<endl;
-    //cout <<"dnum "<<data.size()<<endl;
     for(int d = 0;d < data.size()/3;d++){
       double alpha = (double)data[3*d];
       apl.push_back(alpha);
       double beta = (double)data[3*d+1];
       bpl.push_back(beta);
       double time = (double)data[3*d+2]/genpt;
-      //cout<<time<<endl;
       tpl.push_back(time);
     }
     for(int d = 0;d < datac.size()/3;d++){
@@ -134,16 +126,11 @@ vector<double> afs_reader(string afs_file){
 }
 Vec_2d estimate_process(WFE &wfe,vector<bool> opt_flag,double psize,double slc,double genpt,int snum,vector<double> afs){
     int hy_count = 0;
-    //Vec_2d ftheta = {sqrt((double)gen_num/genpt),0};
     Vec_2d ftheta(2,1);
     ftheta(0) = psize;
     ftheta(1) = slc;
-    //ftheta(1) = 0.001;
     Vec_2d theta(2,1);
-    cout <<"em begin"<<endl;
-    cout <<ftheta.str()<<endl;
     wfe.optimize(ftheta,opt_flag,genpt,snum,afs);
-    cout <<ftheta.str()<<endl;
     theta = wfe.ans_get();
     return(theta);
 }
@@ -154,12 +141,15 @@ void output_process(WFE &wfe,ofstream &ofs,Vec_2d theta,double psize,string genl
     ofs <<"\t"<<genl;
     for(int k = 0;k <theta.size();k++){
       ofs<<"\t"<<theta(k);
-      cout <<"theta"<<k<<":";
-      cout <<theta(k)<<endl;
     }
+    cout <<"Selection coefficient"<<":"<<"\t";
+    cout <<theta(0)<<endl;
+    cout <<"Population size"<<":"<<"\t";
+    cout <<theta(1)<<endl;
     double chisq = wfe.stat_chi2();
-    cout<<"chisq:"<<chisq<<endl;
+    cout<<"Likelihood ratio:"<<"\t"<<chisq<<endl;
     ofs<<"\t"<<chisq;
+    cout<<"Run time:"<<"\t"<<msec<<endl;
     ofs<<"\t"<<msec;
     ofs <<endl;
 }
@@ -238,7 +228,6 @@ int main(int argc,char* argv[]){
     std::cout << msec << " milli sec \n";
     output_process(wfe,ofs,theta,psize,genl,msec);
   }
-  cout<<"end main"<<endl;
   return(0);
 }
 //-p 1200 -g 60 -s 0.005 -i tmp/sim/simg_p1200_gen60_slc0.005.data -o tmp/o.txt

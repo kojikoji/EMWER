@@ -11,10 +11,8 @@ void WFE::refresh(){
   double pop_dnpop = popr;
   double slc_dnslc = slcr;
   //llh_d
-  //cout<<2<<endl;
   double llh_dpop = cqf.llh_dpop();
   double llh_dslc = cqf.llh_dslc();
-  //cout<<2<<endl;
   llh_dnpop = llh_dpop*pop_dnpop;
   llh_dnslc = llh_dslc*slc_dnslc;
 }
@@ -36,13 +34,6 @@ int WFE::CMR::operator()(const vector<double>& x,double& fn,vector<double>& gr){
   if(_opt_flag[1]){
     gr[1] += -upper.llh_dnslc;
   }
-  /*
-  std::cout <<"gr0 "<<gr[0]<<endl;
-  std::cout <<"gr1 "<<gr[1]<<endl;
-  std::cout <<"fn "<<fn<<endl;
-  std::cout <<"x "<<x[0]<<" "<<x[1]<<endl;
-  std::cout <<"slc "<<x[1]*upper.slc<<endl;
-  */
   return(0);
 }
 template<class T>
@@ -55,11 +46,8 @@ void WFE::steepest_descent(T clh){//compute likelhood
   vector<double> ntheta0;
   ntheta0.push_back(pop/popr);
   ntheta0.push_back(slc/slcr);  
-  cout<<1<<endl;
   minimizer.minimize(ntheta0, clh);
   vector<double> ntheta = minimizer.best_x();
-  //cout<<1<<endl;
-  //refresh parameter
   pop = ntheta[0]*popr;
   slc = ntheta[1]*slcr;
 }
@@ -119,12 +107,7 @@ void WFE::optimize(Vec_2d ftheta,vector<bool> _opt_flag,double _genpt,int snum,v
     int arefct = 0;
     cqf.arefresh(pop,slc);
     llh=cqf.get_log_pe();
-    cout<< "slc"<<slc;
-    cout<< " pop"<<pop;
     //llh = cqf.get_log_pe();
-    cout<< " llh:"<<llh;
-    cout<< " pllh:"<<pllh<<endl;
-    //尤度が計算できない領域外で計算できた場合は抜け出す。
     if(slc > oh){
       break;
     }
@@ -132,7 +115,6 @@ void WFE::optimize(Vec_2d ftheta,vector<bool> _opt_flag,double _genpt,int snum,v
       break;
     }
     end_flag = (fabs(pop - ppop) < 1.0e-4 && fabs(slc  - pslc) < 1.0e-5);
-    cout<<(fabs(slc  - pslc)> 1.0e-5)<<endl;
     end_flag = end_flag || std::isnan(llh) || llh < pllh;
     if(llh < pllh){
       pop = ppop;
@@ -140,7 +122,6 @@ void WFE::optimize(Vec_2d ftheta,vector<bool> _opt_flag,double _genpt,int snum,v
       llh = pllh;
     }
     if(end_flag && opt_flag[1]){      
-      cout<<"complete?"<<endl;
       pslc = slc;
       pllh = llh;
       double slcpl = pslc + 0.05;

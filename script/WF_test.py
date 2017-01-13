@@ -7,10 +7,9 @@ if __name__=="__main__":
     sflag = sys.argv[len(sys.argv)-1] == "sim"
     cp = cproc(False)
     #read from condtion file
-    f = open("tmp/test/test_cond.txt",'rb')
+    f = open("script/test_cond.txt",'rb')
     dread = csv.reader(f,delimiter = '\t')
     dsc = dread.next()[0]
-    Dnum = dread.next()[0]
     dnum = dread.next()[0]
     pop = dread.next()[0]
     gen = dread.next()[0]
@@ -18,35 +17,12 @@ if __name__=="__main__":
     fld = dread.next()[0]
     spnum = dread.next()[0]
     opt_flg = dread.next()[0]
-    if os.path.exists("tmp/sim")!=True:
-        os.mkdir("tmp/sim")
-    if os.path.exists("tmp/rlt")!=True:
-        os.mkdir("tmp/rlt")
-    """
-    fnsim = "tmp/sim/sim" \
-            + "_p" + pop \
-            + "_gen" + gen \
-            + "_slc" + slc \
-            + "_dnum" + dnum \
-            + ".data"
-    fnsimc = "tmp/sim/simc" \
-            + "_p" + pop \
-            + "_gen" + gen \
-            + "_slc" + slc \
-            + "_dnum" + dnum \
-            + ".data"
-    fnrlt = "tmp/rlt/rlt" \
-            + "_s" \
-            + "_p" + pop \
-            + "_gen" + gen \
-            + "_slc" + slc \
-            + "_dnum" + dnum \
-            + ".dat"
-    """
-    fnsim = "tmp/test/sim_test.dat"
-    fnsimc = "tmp/test/simc_test.dat"
-    fnrlt = "tmp/test/rlt_test.dat"
-    fnafs = "tmp/test/afs_test.afs"
+    if os.path.exists("tmp")!=True:
+        os.mkdir("tmp")
+    fnsim = "tmp/sim_test.dat"
+    fnsimc = "tmp/simc_test.dat"
+    fnrlt = "tmp/rlt_test.dat"
+    fnafs = "script/afs_test.afs"
     cmdsim = "./build/default/WF_sim" \
             + " -n " + spnum \
             + " -r " + dnum \
