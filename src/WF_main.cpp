@@ -136,15 +136,10 @@ Vec_2d estimate_process(WFE &wfe,vector<bool> opt_flag,double psize,double slc,d
 }
 void output_process(WFE &wfe,ofstream &ofs,Vec_2d theta,double psize,string genl,double msec){
     cout <<theta.str()<<endl;
-    ofs <<1;
-    ofs <<"\t"<<psize;
-    ofs <<"\t"<<genl;
-    for(int k = 0;k <theta.size();k++){
-      ofs<<"\t"<<theta(k);
-    }
-    cout <<"Selection coefficient"<<":"<<"\t";
-    cout <<theta(0)<<endl;
+    ofs<<theta(0)<<"\t"<<theta(1);
     cout <<"Population size"<<":"<<"\t";
+    cout <<theta(0)<<endl;
+    cout <<"Selection coefficient"<<":"<<"\t";
     cout <<theta(1)<<endl;
     double chisq = wfe.stat_chi2();
     cout<<"Likelihood ratio:"<<"\t"<<chisq<<endl;
