@@ -18,12 +18,12 @@ $ ./waf build
 The executable file will be generated as `build/default/WF_main`
 
 ##Usage
-You can execute our program through python script `script/EMWER.py`.
+You can execute our program through python script `script/pipe_line/EMWER.py`.
 By default, simulation of ER data by mimicree and
 estimation of selection coefficients are performed.
 
 ```shell-session
-$ python script/EMWER.py
+$ python script/pipe_line/EMWER.py
 ```
 
 The estimation result is written in
@@ -61,14 +61,14 @@ Each row represents each experimental condition.;`gen` is the generation of samp
 You can test the estimation of effective population size by:
 
 ```shell-session
-$ python script/EMWER.py -c script/cond/emwer_test_pop.cond
+$ python script/pipe_line/EMWER.py -c script/cond/emwer_test_pop.cond
 ```
 
 `-c` specify the file name of experimental conndition.
 
 Furthermore,you can test the estimation
 ```shell-session
-$ python script/EMWER.py -c script/cond/emwer_test_real.cond -s data/real_data_test.sync
+$ python script/pipe_line/EMWER.py -c script/cond/emwer_test_real.cond -s data/real_data_test.sync
 ```
 `-s` specify the synchronized file (see detail in https://sourceforge.net/p/popoolation2/wiki/Tutorial/) of ER data[Orozco-terWengel,2012].
 

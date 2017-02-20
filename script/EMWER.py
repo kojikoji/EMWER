@@ -57,6 +57,7 @@ if __name__=="__main__":
     parser.add_argument('--tflag', '-t',default=False, action = "store_true",help='test flag not qsub')
     parser.add_argument('--condition', '-c',default='script/cond/emwer_test_condition.txt',type=str,help='condition filename')
     parser.add_argument('--hap_file', '-hp',default='tmp/test/hap_init_500.mimhap',type=str,help='condition filename')
+    parser.add_argument('--hap_file', '-hp',default='tmp/test/hap_init_500.mimhap',type=str,help='condition filename')
     args = parser.parse_args()
     cp = cproc(False,args.tflag)
     cond_file = args.condition

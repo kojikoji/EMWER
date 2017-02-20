@@ -4,7 +4,7 @@ import random
 import re
 import argparse
 import os
-from cproc.cproc import *
+from cproc import *
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='make sync into dat')
     parser.add_argument('--tflag', '-t',default=False, action = "store_true",help='test flag not qsub')
