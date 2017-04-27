@@ -1,7 +1,7 @@
 gen:0,30
 pop:250
 slc:0.05
-dep:30
+dep:100
 rep:20
 disc:30
 opt:slc

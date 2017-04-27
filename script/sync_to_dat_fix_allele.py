@@ -127,7 +127,9 @@ def sync_to_dat(sync_file,dat_file,ref_file,afs_file,genl,repl,disc,bd):
         if bdflag :
             datf.write(oline)
             if rflag :
-                reff.write(get_ref(line) + "\t" + str(iaf/iafc) + '\n')
+                if iafc != 0:                    
+                    iaf = iaf/iafc
+                reff.write(get_ref(line) + "\t" + str(iaf) + '\n')
     datf.close()
     syncf.close()
     if aflag:
