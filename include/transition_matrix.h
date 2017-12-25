@@ -1,125 +1,191 @@
+
 #ifndef TM
 #define TM
-#include<Matrix.h>
-typedef Matrix<double> Mat_st;
-typedef Matrix<double> Vec_st;
-typedef Matrix<double> TVec_st;
-typedef Matrix<double> Vec_mst;
-typedef Matrix<double> Vec_2d;
+//#include<Matrix.h>
+#define EIGEN_NO_DEBUG // コード内のassertを無効化．
+#define EIGEN_DONT_PARALLELIZE // 並列を無効化．
+#define EIGEN_MPL2_ONLY // LGPLライセンスのコードを使わない．
+
+#include <Eigen/Core>
+//#include <Eigen/Dense>
+#include <Eigen/Eigenvalues> 
+
+#include <chrono>
+#include <vector>
+using  Mat_st = Eigen::MatrixXd;
+using  Mat_stc = Eigen::MatrixXcd;
+using  Vec_st = Eigen::MatrixXd;
+using Vec_ist = Eigen::MatrixXd;
+//typedef Matrix<std::complex<double>> Vec_stc;
+using TVec_st =  Eigen::MatrixXd;
+using Vec_mst =  Eigen::MatrixXd;
+using Vec_3d = Eigen::MatrixXd;
+
+template<class T>
+using Mat_gen = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>;
+
+using namespace std;
+template<class T>
+class CTM;
 // computation of transition matrix
+template<class T>
 class CTM{
   // number of discretization of AF
   int STNUM;
   //STNUM-1
   int MSTNUM;
+  //STNUM-2
+  int ISTNUM;
   //discretization resolution
-  double H;
+  double dlt;
   //time discretization num band used in safe_nf_refresh
   double safe_disc = 10;
-  //pz * pze1 * pze2 * ...
-  Vec_st q_vec;
-  // sum z of qz
-  double qe;
+  //parameters
+  double slc;
+  double neff;
+  double dom;
+  double genpt = 1;
   // p(ad,bd|d=1..dsize)
-  double pe;
-  //sufficient statistics
-  double fd,ndp,ndm;
-  //error
-  double epmx,ldmx;
+  T pe;
   //p(alpha,beta|endpoint)
   vector<Vec_st> pabx;
   //probability of transition from z to e after t for z = 0:stnum-1
   //forward probability P(a(1:k),b(1:k),xk=i)
-  vector<Vec_st > fwd;
+  vector<Mat_gen<T> > fwd;
   //backward probability P(a(k:D),b(k:D),xk=i)
-  vector<Vec_st > bwd;
+  vector<Mat_gen<T> > bwd;
   //d pse /drij
-  Vec_mst np_vec,nm_vec;
-  Vec_st tf_vec;
-   //matrix r differenciated by parameter
-  vector<Vec_st> rdsig_c;
-  vector<Vec_st> rdgam_c;
-  //symetry matrix is this
-  //of center
-  Vec_st sym_c;
-  //of side
-  Vec_mst sym_s;
   //sym*dg colwise is r
-  Vec_st dg;
-  Vec_st sqdg;
-  Vec_st isqdg;
-  //c mean center
-  Vec_st r_c;
-  //p mean plus
-  Vec_mst r_p;
-  //m mean minus
-  Vec_mst r_m;
   // dependecy of x
-  Vec_st fiv;
-  Mat_st k_uv;
-  Mat_st u_mat;
-  Mat_st ui_mat;
-  Vec_st ld;
+  Mat_gen<T> u_mat;
+  Mat_gen<T> ui_mat;
+  Mat_gen<T> kapd_mat;
+  Mat_gen<T> kap_mat;
+  Mat_gen<T> tkap_mat;
+  Mat_gen<T> ld;
   //data
   //number of endpoint data
   int dsize;
-  //alpha nuber of major fold
-  vector<int> apl;
-  //beta number of minor fold
-  vector<int> bpl;
   //time point
   vector<double> tpl;
   //u*sum(td*kd)
-  //use for clcuration of sufficient statistics
-  Mat_st pi_mat;
-  Mat_st mi_mat;
-  Mat_st ci_mat;
   double to_xi(int i);
-  Vec_st exp_eg(double t);
-  void utk_refresh();
-  double tpze_drc(int i);
-  double tpze_drp(int i);
-  double tpze_drm(int i);
-  Mat_st etr_make(double t);
-  template <class T>
-  Matrix<T> diag(Matrix<T> vec);
+  Mat_gen<T> exp_eg(double t);
+  Mat_gen<T> etr_make(double t);
+  Mat_gen<T> diag(Mat_gen<T> vec);
+  bool test_flag = true;
 public:
+  //c mean center
+  Vec_st rc_vec;
+  //p mean plus
+  Vec_mst rp_vec;
+  //m mean minus
+  Vec_mst rm_vec;
+  //p mean plus
+  Vec_mst lrp_vec;
+  //m mean minus
+  Vec_mst lrm_vec;
+  //c mean center
+  Vec_st rcdneff_vec;
+  //p mean plus
+  Vec_mst lrpdneff_vec;
+  //m mean minus
+  Vec_mst lrmdneff_vec;
+  //c mean center
+  Vec_st rcdslc_vec;
+  //p mean plus
+  Vec_mst lrpdslc_vec;
+  //m mean minus
+  Vec_mst lrmdslc_vec;
+  //c mean center
+  Vec_st rcddom_vec;
+  //p mean plus
+  Vec_mst lrpddom_vec;
+  //m mean minus
+  Vec_mst lrmddom_vec;
+  //c mean center
+  Vec_st rcdslcslc_vec;
+  //p mean plus
+  Vec_mst lrpdslcslc_vec;
+  //m mean minus
+  Vec_mst lrmdslcslc_vec;
+  //c mean center
+  Vec_st rcdslcdom_vec;
+  //p mean plus
+  Vec_mst lrpdslcdom_vec;
+  //m mean minus
+  Vec_mst lrmdslcdom_vec;
+  //c mean center
+  Vec_st rcddomdom_vec;
+  //p mean plus
+  Vec_mst lrpddomdom_vec;
+  //m mean minus
+  Vec_mst lrmddomdom_vec;
   CTM();
   void init(int snum);
   //r and rd is refreshed for new parameter  
-  void refresh(Vec_2d theta);
+  bool param_refresh(Vec_3d theta);
+  //secoudary differencitation
+  bool dd_refresh(Vec_3d theta);
   //eigen deconposition done
   void eigen_refresh();
-  //refresh u_mat and ui_mat and dg
-  void u_mat_refresh();
   //refresh pi_, mi_ and ci_ mat
   void i_mat_refresh();
   //refresh epmx
   void epmx_refresh();
   //all element refresh (including umat uimat)
-  void arefresh(Vec_2d theta);
-  void pabx_refresh();
+  bool arefresh(Vec_3d theta);
+  void tkap_mat_refresh();
   //refresh k_uv and pse
   //refresh pze and return vector of pzx1*pzx2*... for z
-  double lpe_refresh(vector<int> _apl,vector<int> _bpl,vector<double> _tpl,Vec_st pz);
-  double safe_lpe_refresh(vector<int> _apl,vector<int> _bpl,vector<double> _tpl,Vec_st pz);
+  bool lpe_refresh(vector<Vec_st> _pabl,vector<double> _tpl,Vec_st pz);
+  double safe_lpe_refresh(vector<Vec_st> _pabl,vector<double> _tpl,Vec_st pz);
+  //
+  void kapd_refresh();
   //refresh N and F ,argument is qz = pz*px1*px2*...*pc1*pc2*...
   void nf_refresh();
   //in dangerous selection, sufficient statistics are safly estimated
   void safe_nf_refresh();
-  double tf_get(int i);
-  double n_pget(int i);
-  double n_mget(int i);
-  double pse_get();  
+  //get parameters
+  double pe_get();  
   //part of r and dr which depend on parameters
-  double f_i(int i);
-  double f_p(Vec_2d theta);
-  double f_m(Vec_2d theta);
-  double fp_dsig(Vec_2d theta);
-  double fm_dsig(Vec_2d theta);
-  double fc_dsig(Vec_2d theta);
-  double fc_dgam(Vec_2d theta);
-  double fp_dgam(Vec_2d theta);
-  double fm_dgam(Vec_2d theta);
+  double f_rq(double x);
+  double f_rq_dneff(double x);
+  double f_rq_dslc(double x);
+  double f_rq_ddom(double x);
+  double f_rq_dslcslc(double x);
+  double f_rq_ddomdom(double x);
+  double f_rq_dslcdom(double x);
+  double f_rqp(double x);
+  double f_rqp_dneff(double x);
+  double f_rqp_dslc(double x);
+  double f_rqp_ddom(double x);
+  double f_rqp_dslcslc(double x);
+  double f_rqp_dslcdom(double x);
+  double f_rqp_ddomdom(double x);
+  double f_r(double x);
+  double f_q(double x);
+  double f_irdneff(double x);
+  double f_iqdneff(double x);
+  double f_irdslc(double x);
+  double f_iqdslc(double x);
+  double f_irddom(double x);
+  double f_iqddom(double x);
+  Mat_st make_r_mat();
+  Mat_st make_u_ldn_ui(double n);
+  Mat_st make_exp_tr(double t);
+  Mat_st make_exp_tr_num(double t,int num);
+  Vec_st make_fs_vec();
+  Vec_st make_np_vec();
+  Vec_st make_nm_vec();
+  Vec_st make_gam_vec(Vec_st &pz);
 };
+template <class T>
+void print_vec(vector<T> vec);
+template <class T>
+Mat_gen<T> element_each(T el,int N,int M);
+
+double no_minus(double val);
+Mat_st no_minus(Mat_st mat);
+double binom(double p,int a,int b);
 #endif

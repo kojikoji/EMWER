@@ -1,16 +1,34 @@
 #include<Matrix.h>
 #include<transition_matrix.h>
 #include<random>
+#include <chrono>
+//#define TIME(PROCESS,TAG)  start3 = chrono::system_clock::now();;PROCESS;end3 = std::chrono::system_clock::now();dur3 = end3 - start3;msec3 = std::chrono::duration_cast<std::chrono::microseconds>(dur3).count();std::cout<<TAG <<"\t"<< msec3 << " milli sec \n";
+#ifndef TIME
+#define TIME(PROCESS,TAG)  PROCESS;
+#endif
+
+#define KAPOPT
+auto start3 = std::chrono::system_clock::now();
+auto end3 = std::chrono::system_clock::now();
+auto dur3 = end3 - start3;
+auto msec3 = std::chrono::duration_cast<std::chrono::milliseconds>(dur3).count();
+template <class T>
+void print_vec(vector<T> vec){
+  for( auto itr = vec.begin(); itr != vec.end(); itr++){
+    cout<<"\t"<<*itr;
+  }
+  cout<<endl;
+}
 double no_minus(double val){
   if(val > 0){
     return(val);
   }else{
     return(0);
   }
-}  
-template <class T>
-Matrix<T> multi_each(Matrix<T> mat1,Matrix<T> mat2){
-  Matrix<T> ans = Matrix<T>::Zero(mat1.rows(),mat1.cols());
+}
+/*
+Mat_st multi_each(Mat_st mat1,Mat_st mat2){
+  Mat_st ans = Mat_st::Zero(mat1.rows(),mat1.cols());
   for(int i = 0;i < mat1.rows();i++){
     for(int j = 0;j < mat1.cols();j++){
       ans(i,j) = mat1(i,j)*mat2(i,j);
@@ -18,12 +36,34 @@ Matrix<T> multi_each(Matrix<T> mat1,Matrix<T> mat2){
   }
   return(ans);
 }
-template <class T>
-Matrix<T> no_minus(Matrix<T> mat){
-  Matrix<T> ans = Matrix<T>::Zero(mat.rows(),mat.cols());
+
+Mat_gen<std::complex<double>> multi_each(Mat_gen<std::complex<double>> mat1,Mat_gen<std::complex<double>> mat2){
+  Mat_gen<std::complex<double>> ans = Mat_stc::Zero(mat1.rows(),mat1.cols());
+  for(int i = 0;i < mat1.rows();i++){
+    for(int j = 0;j < mat1.cols();j++){
+      ans(i,j) = mat1(i,j)*mat2(i,j);
+    }
+  }
+  return(ans);
+}
+*/
+
+template <class T1,class T2, class T3> 
+T3 multi_each(T1 mat1,T2 mat2){
+  T3 ans = T3::Zero(mat1.rows(),mat1.cols());
+  for(int i = 0;i < mat1.rows();i++){
+    for(int j = 0;j < mat1.cols();j++){
+      ans(i,j) = mat1(i,j)*mat2(i,j);
+    }
+  }
+  return(ans);
+}
+
+Mat_stc no_minus(Mat_stc mat){
+  Mat_stc ans = Mat_stc::Zero(mat.rows(),mat.cols());
   for(int i = 0;i < mat.rows();i++){
     for(int j = 0;j < mat.cols();j++){
-      if(mat(i,j) > 0){
+      if(mat(i,j).real() > 0){
 	ans(i,j) = mat(i,j);
       }else{
 	ans(i,j) = 0;
@@ -32,9 +72,20 @@ Matrix<T> no_minus(Matrix<T> mat){
   }
   return(ans);
 }
+bool minus_check(Mat_st mat){
+  bool ans = false;
+  for(int i = 0;i < mat.rows();i++){
+    for(int j = 0;j < mat.cols();j++){
+      if(mat(i,j) < 0){
+	ans = true;
+      }
+    }
+  }
+  return(ans);
+}
 template <class T>
-Matrix<T> element_each(T el,int N,int M){
-  Matrix<T> ans = Matrix<T>::Zero(N,M);
+Mat_gen<T> element_each(T el,int N,int M){
+  Mat_gen<T> ans = Mat_gen<T>::Zero(N,M);
   for(int i = 0;i < N;i++){
     for(int j = 0;j < M;j++){
       ans(i,j) = el;
@@ -42,7 +93,7 @@ Matrix<T> element_each(T el,int N,int M){
   }
   return(ans);
 }
-double binom(double p,int a,int b){
+double binom_ctm(double p,int a,int b){
   int n = a+b;
   //combination and p
   double ans = 1; 
@@ -68,80 +119,90 @@ double binom(double p,int a,int b){
   }
   return(ans);
 }
-template <class T>
-Matrix<T> CTM::diag(Matrix<T> vec){
-  Matrix<T> ans = Matrix<T>::Zero(vec.rows(),vec.rows());
+template<class T>
+Mat_gen<T> CTM<T>::diag(Mat_gen<T> vec){
+  Mat_gen<T> ans = Mat_gen<T>::Zero(vec.rows(),vec.rows());
   for(int i = 0;i < vec.rows();i++){
     ans(i,i) = vec(i,0);
   }
   return(ans);
 }
-double CTM::to_xi(int i){
+template <class T>
+double CTM<T>::to_xi(int i){
   double h = (double)1/MSTNUM;
   return(h*i);
 }
-Vec_st CTM::exp_eg(double t){
-  Vec_st exp_eigens(STNUM,1);
+template <class T>
+Mat_gen<T> CTM<T>::exp_eg(double t){
+  Mat_gen<T> exp_eigens(STNUM,1);
   //time setting
   for(int i = 0;i < STNUM;i++){
     exp_eigens(i) = exp(t*ld(i));
   }
   return(exp_eigens);
 }
-void CTM::pabx_refresh(){
-  pabx.clear();
-  //cout<<"in"<<endl;
-  for(int d = 0;d < dsize;d++){
-    Vec_st qx(STNUM,1);
-    for(int i = 0;i < STNUM;i++){
-      qx(i) = binom(to_xi(i),apl[d],bpl[d]);
-    }
-    //cout <<apl[d]<<" "<<bpl[d]<<endl;
-    //cout<<qx.str()<<endl;
-    pabx.push_back(move(qx));
-  }
-}
+
 //calucu etr
-Mat_st CTM::etr_make(double t){
-  //cout<<exp(t*ldmx)*epmx<<endl;
-  Vec_st exp_eigens = exp_eg(t);
-  Mat_st er_mat = element_each<double>(exp(t*ldmx)*epmx,STNUM,STNUM);
-  Mat_st etq = u_mat*diag(exp_eigens)*ui_mat;
+template<class T>
+Mat_gen<T> CTM<T>::etr_make(double t){
+  Mat_gen<T> exp_eigens = exp_eg(t);
+  //Mat_st er_mat = element_each<double>(exp(t*ldmx)*epmx,STNUM,STNUM);
+  Mat_gen<T> etq = diag(exp_eigens);
   //error correct from biased zooming dg
-  etq = no_minus(etq - er_mat);
-  Mat_st etr = diag(isqdg)*etq*diag(sqdg);
+  //etq = no_minus(etq - er_mat);
+  Mat_gen<T> etr = etq;
   return(etr);
 }
+// pre pab data
+
 //caluculate data wise 
-double CTM::lpe_refresh(vector<int> _apl,vector<int> _bpl,vector<double> _tpl,Vec_st pz){
-  apl = _apl;
-  bpl = _bpl;
+template<class T>
+bool CTM<T>::lpe_refresh(vector<Vec_st> _pabl,vector<double> _tpl,Vec_st pz){
   tpl = _tpl;
   Vec_st tone_vec = element_each((double)1,1,STNUM);
   //Mat_st er_mat =  element_each<double>(epmx,STNUM,STNUM);
   //case
   dsize = tpl.size();
+  TIME(
+  pabx = _pabl;
   //calucurate p(alpha,beta|endpoint)
-  pabx_refresh();
+  //pabx_refresh();
+  ,"PAB")
   //caluculate  etr
-  vector<Mat_st> etr(dsize);
+  vector<Mat_gen<T>> etr(dsize);
   for(int d = 0;d < dsize-1;d++){
     double t = tpl[d+1]-tpl[d];
     etr[d] = etr_make(t);
-    //cout<<etr[d].str()<<endl;
+    //cout<<etr[d]<<endl;
     //cout<<t<<endl;
     //cout<<etr[d].str()<<endl;
 
   }
+  bool calc_fail = false;
   //forward
   fwd.resize(dsize);
-  fwd[0] = multi_each(pabx[0],pz);
+  fwd[0] = multi_each<Mat_st,Mat_st,Mat_gen<T>>(pabx[0],pz);
   //cout<<fwd[0].str()<<endl;
   for(int d = 0;d < dsize-1;d++){
-    Vec_st nfwd = etr[d]*fwd[d];
+    Mat_gen<T> nfwd = u_mat*(etr[d]*(ui_mat*fwd[d]));
     //cout<<etr[d].str()<<endl;
     //cout<<pabx[d+1].str()<<endl;
-    fwd[d+1] = multi_each(pabx[d+1],nfwd);
+    fwd[d+1] = multi_each<Mat_st,Mat_gen<T>,Mat_gen<T>>(pabx[d+1],nfwd);
+    //if(minus_check(fwd[d+1].real())){
+    /*
+    if(fwd[d+1].real().minCoeff() < 0){
+      //cout<<"negtive"<<endl;
+      double prop = -fwd[d+1].real().minCoeff()/fwd[d+1].real().maxCoeff();
+      if(prop > 1.0e-4){
+	cout<<"negtive"<<endl;
+	calc_fail = true;
+      }
+    }
+    if(fwd[d+1].real().maxCoeff() > 1){
+      //cout<<"over 1"<<endl;
+      calc_fail = true;
+    }
+    */
   }
   //cout<<fwd[dsize-1].str()<<endl;
   //forward
@@ -149,165 +210,158 @@ double CTM::lpe_refresh(vector<int> _apl,vector<int> _bpl,vector<double> _tpl,Ve
   bwd[dsize-1] = pabx[dsize-1];
   for(int d = 1;d < dsize;d++){
     int rd = dsize - d;
-    Vec_st pbwd = (etr[rd-1].transpose())*bwd[rd];
-    bwd[rd-1] = multi_each(pabx[rd-1],pbwd);
+    Mat_gen<T> pbwdT = (((bwd[rd].transpose())*u_mat)*etr[rd-1])*ui_mat;
+    bwd[rd-1] = multi_each<Mat_st,Mat_gen<T>,Mat_gen<T>>(pabx[rd-1],pbwdT.transpose());
+    /*
+    if(bwd[rd-1].real().minCoeff() < 0){
+      //cout<<"back negtive"<<endl;
+      double prop = -bwd[rd-1].real().minCoeff()/bwd[rd-1].real().maxCoeff();
+      if(prop > 1.0e-4){
+	cout<<"back negtive"<<endl;
+	calc_fail = true;
+      }
+    }
+    if(bwd[rd-1].real().maxCoeff() > 1){
+      //cout<<"back over 1"<<endl;
+      calc_fail = true;
+    }
+    */
+    //cout<<bwd[rd-1].str()<<endl;
   }
   if(dsize == 1){
     pe = 1;
   }else{
     //get pe form onevec*fwd(D) into log
-    pe = element_each((double)1,1,STNUM)*fwd[dsize-1];
-    nf_refresh();
+    pe = (element_each((double)1,1,STNUM)*fwd[dsize-1])(0,0);
   }
   //cout<<pe<<endl;
-  return(log(pe));
-}
-void CTM::nf_refresh(){
-  //modified vec for j and for i
-  fd=0;
-  ndp=0;
-  ndm=0;
-  //epmx = 0;
-  /*
-  double umx = 0,uimx = 0;
-  for(int i = 0;i < STNUM;i++){
-    for(int j = 0;j < STNUM;j++){
-      umx = max(fabs(u_mat(i,j)),umx);
-      uimx = max(fabs(ui_mat(i,j)),uimx);
-    }
-  }
-  double u3mx = pow(max(umx,uimx),3);
-  double rmmx = 0,rpmx  = 0,fimx = 0;
-  for(int i = 0;i < MSTNUM;i++){
-    rmmx = max(fabs(r_m(i)),rmmx);
-    rpmx = max(fabs(r_p(i)),rpmx);
-    fimx = max(fabs(f_i(i)),fimx);
-  }
-  */
-  for(int d = 0;d <dsize-1;d++){
-    double t = tpl[d+1] - tpl[d];
-    //Mat_st er_mat = element_each<double>(exp(t*ldmx)*epmx,STNUM,STNUM);
-    Vec_st exp_eigens = exp_eg(t);
-    //caluculate l_vec
-    Vec_st r_vec = multi_each(sqdg,fwd[d]);
-    Vec_st l_vec = multi_each(bwd[d+1],isqdg);
-    //cout<<pabx[d].str()<<endl;
-    //cout<<"r_vec : "<<r_vec.str()<<endl;
-    //caluculate mat vu_mat
-    //caluculate u_eu*ui_ui*u_jv*u_vs*k
-    Mat_st tkp = Mat_st::Zero(STNUM,STNUM);
-    Mat_st tkm = Mat_st::Zero(STNUM,STNUM);
-    Mat_st tkc = Mat_st::Zero(STNUM,STNUM);
-    if(t != 0){ // if t = 0, utk is not added
-      Mat_st uv_mat(STNUM,STNUM);
-      for(int u = 0;u < STNUM;u++){
-	for(int v = 0;v < STNUM;v++){
-	  double k;
-	  if(ld(u)- ld(v) < 10e-200){///MEMO
-	    k = exp_eigens(u);
-	  }else{
-	    k = (exp_eigens(u) - exp_eigens(v))/(t*(ld(u) - ld(v)));
-	  }
-	  tkp(u,v) = t*pi_mat(u,v)*k;
-	  tkm(u,v) = t*mi_mat(u,v)*k;
-	  tkc(u,v) = t*ci_mat(u,v)*k;
-	}
-      }
-      fd += l_vec.transpose()*u_mat*tkc*ui_mat*r_vec/pe;
-      ndp += l_vec.transpose()*u_mat*tkp*ui_mat*r_vec/pe;
-      ndm += l_vec.transpose()*u_mat*tkm*ui_mat*r_vec/pe;
-      //sum t*vumat 
-    }
-  }
-  //cout<<"utkrow1 : "<<utk.row(3).str()<<endl;
-}
-double CTM::safe_lpe_refresh(vector<int> _apl,vector<int> _bpl,vector<double> _tpl,Vec_st pz){
-  apl = _apl;
-  bpl = _bpl;
-  tpl = _tpl;
-  Vec_st tone_vec = element_each((double)1,1,STNUM);
-  //Mat_st er_mat =  element_each<double>(epmx,STNUM,STNUM);
-  //case
-  dsize = tpl.size();
-  //calucurate p(alpha,beta|endpoint)
-  pabx_refresh();
-  //caluculate  etr
-  vector<Mat_st> edtr(dsize,Mat_st::Zero(STNUM,STNUM));
-  for(int d = 0;d < dsize-1;d++){
-    double t = tpl[d+1]-tpl[d];
-    double dt = t/safe_disc;
-    edtr[d] = etr_make(dt);
-  }
-  //forward
-  fwd.assign((dsize-1)*safe_disc+1,Mat_st::Zero(STNUM,1));
-  fwd[0] = multi_each(pabx[0],pz);
-  for(int d = 0;d < dsize-1;d++){
-    double dt = (double)1/safe_disc;
-    for(int pt = 0;pt < safe_disc;pt++){
-      fwd[d*safe_disc + pt + 1] = edtr[d]*fwd[d*safe_disc + pt];
-    }
-    fwd[(d+1)*safe_disc] = multi_each(pabx[d+1],fwd[(d+1)*safe_disc]);
-  }
-  //backward
-  bwd.assign((dsize-1)*safe_disc+1,Mat_st::Zero(STNUM,1));
-  bwd[(dsize-1)*safe_disc] = element_each((double)1,STNUM,1);
-  for(int d = 1;d < dsize;d++){
-    int rd = dsize - d;
-    double dt = (double)1/safe_disc;
-    bwd[(rd)*safe_disc-1] = (edtr[rd-1]).transpose()*multi_each(pabx[rd],bwd[(rd)*safe_disc]);
-    for(int pt = 1;pt < safe_disc;pt++){
-      bwd[rd*safe_disc - pt - 1] = (edtr[rd-1]).transpose()*bwd[rd*safe_disc - pt];
-      int loc = rd*safe_disc - pt - 1;
-      //cout<<log(bwd[loc].transpose()*fwd[loc])<<endl;
-    }
-  }
-  //get pe form onevec*fwd(D) into log
-  if(dsize == 1){
-    pe = 1;
-  }else{
-    pe = (element_each((double)1,1,STNUM)*fwd[(dsize-1)*safe_disc])(0,0);
-    safe_nf_refresh();
-  }
-  //cout<<"ture"<<log(pe)<<endl;
-  return(log(pe));
-}
-void CTM::safe_nf_refresh(){
-  //modified vec for j and for i
-  fd=0;
-  ndp=0;
-  ndm=0; 
-  //epmx = 0;
-  int loc;
-  double t;
-  double dt = (double)1/safe_disc;
-  for(int d = 0;d <dsize-1;d++){
-    for(int pt = 0;pt < safe_disc;pt++){
-      t = tpl[d+1] - tpl[d];
-      loc = d*safe_disc + pt;
-      //cout<<loc<<endl;
-      ndp += bwd[loc].cut(1,STNUM-1).transpose()*multi_each(r_p,fwd[loc].cut(0,MSTNUM-1))*dt*t/pe;
-      ndm += bwd[loc].cut(0,MSTNUM-1).transpose()*multi_each(r_m,fwd[loc].cut(1,STNUM-1))*dt*t/pe;
-      fd += bwd[loc].transpose()*multi_each(fiv,fwd[loc])*dt*t/pe;
-    }
-  }
-  t = tpl[dsize-1] - tpl[dsize-2];
-  loc = (dsize-1)*safe_disc;
-  //cout<<bwd[loc].size()<<endl;
-  //cout<<fwd[loc].size()<<endl;
-  ndp += bwd[loc].cut(1,STNUM-1).transpose()*multi_each(r_p,fwd[loc].cut(0,MSTNUM-1))*dt*t/pe;
-  ndm += bwd[loc].cut(0,MSTNUM-1).transpose()*multi_each(r_m,fwd[loc].cut(1,STNUM-1))*dt*t/pe;
-  fd += bwd[loc].transpose()*multi_each(fiv,fwd[loc])*dt*t/pe;
+  return(calc_fail);
+
 }
 
-double CTM::n_pget(int i){
-  double ans = ndp;
-  return(ans);
+// to
+template<class T>
+void CTM<T>::kapd_refresh(){
+  kapd_mat = Mat_gen<T>::Zero(STNUM,STNUM);
+  for(int l = 0; l < dsize -1; l++){
+    double t = tpl[l+1] - tpl[l];
+    //cout<<t<<endl;
+    Mat_gen<T> b_vec = (bwd[l+1].transpose()*u_mat).transpose();
+    //cout<<b_vec.str()<<endl;
+    Mat_gen<T> f_vec = ui_mat * fwd[l];
+    Mat_gen<T> fb_mat = f_vec*b_vec.transpose();
+    Mat_gen<T> tld = t*ld;
+    Mat_gen<T> etld = tld;
+    for(int u = 0; u < STNUM; u++){
+      etld(u) = exp(tld(u));
+    }
+    T* tld_ptr = tld.data();
+    T* etld_ptr = etld.data();
+    T* kap_ptr = kapd_mat.data();
+    T* fb_ptr = fb_mat.data();
+    TIME(
+    for(int v = 0; v < STNUM; v++){
+      for(int u = 0; u < STNUM; u++){
+	T tlu = tld_ptr[u];
+	T tlv = tld_ptr[v];
+	T val = (etld_ptr[u] - etld_ptr[v])/(tlu - tlv);
+	if(abs(tlu - tlv) < 1.0e-50){
+	  val = etld_ptr[u];
+	}
+	kap_ptr[u+v*STNUM] += t*fb_ptr[u+v*STNUM]*val/pe;
+      }
+    },"iter1")
+      }
+  //cout<<kapd_mat.str()<<endl;
+  //kapd_mat = kapd_mat.transpose();
+  kap_mat = kap_mat + kapd_mat;
 }
-double CTM::n_mget(int i){
-  double ans = ndm;
-  return(ans);
+template<class T>
+double CTM<T>::pe_get(){
+  return(pe);
 }
-double CTM::tf_get(int i){
-  double ans = fd;
-  return(ans);
+template<>
+double CTM<std::complex<double>>::pe_get(){
+  return(pe.real());
 }
+
+template<class T>
+void CTM<T>::tkap_mat_refresh(){
+  tkap_mat = kap_mat*ui_mat;
+}
+template<class T>
+Vec_st CTM<T>::make_fs_vec(){
+  Vec_st fs_vec = Vec_st::Zero(STNUM,1);
+  for(int i =  1; i < STNUM-1; i++){
+    fs_vec(i) = (u_mat.row(i)*tkap_mat.col(i))(0,0);
+  }
+  return(fs_vec);
+}
+    
+template<class T>
+Vec_st CTM<T>::make_np_vec(){
+  Vec_st np_vec = Vec_st::Zero(STNUM,1);
+  for(int i =  1; i < STNUM-1; i++){
+    np_vec(i) = rp_vec(i)*(u_mat.row(i)*tkap_mat.col(i+1))(0,0);
+  }
+  return(np_vec);
+}
+template<class T>
+Vec_st CTM<T>::make_nm_vec(){
+  Vec_st nm_vec = Vec_st::Zero(STNUM,1);
+  for(int i =  1; i < STNUM-1; i++){
+    nm_vec(i) = (rm_vec(i)*(u_mat.row(i)*tkap_mat.col(i-1)))(0,0);
+  }
+  return(nm_vec);
+}
+
+template<>
+Vec_st CTM<std::complex<double>>::make_fs_vec(){
+  Vec_st fs_vec = Vec_st::Zero(STNUM,1);
+  for(int i =  1; i < STNUM-1; i++){
+    fs_vec(i) = (u_mat.row(i)*tkap_mat.col(i))(0,0).real();
+  }
+  return(fs_vec);
+}
+    
+template<>
+Vec_st CTM<std::complex<double>>::make_np_vec(){
+  Vec_st np_vec = Vec_st::Zero(STNUM,1);
+  for(int i =  1; i < STNUM-1; i++){
+    np_vec(i) = rp_vec(i)*(u_mat.row(i)*tkap_mat.col(i+1))(0,0).real();
+  }
+  return(np_vec);
+}
+template<>
+Vec_st CTM<std::complex<double>>::make_nm_vec(){
+  Vec_st nm_vec = Vec_st::Zero(STNUM,1);
+  for(int i =  1; i < STNUM-1; i++){
+    nm_vec(i) = (rm_vec(i)*(u_mat.row(i)*tkap_mat.col(i-1)))(0,0).real();
+  }
+  return(nm_vec);
+}
+
+template<class T>
+Vec_st CTM<T>::make_gam_vec(Vec_st &pz){
+  Vec_st gam_vec = Vec_st::Zero(STNUM,1);
+  for(int i =  0; i < STNUM; i++){
+    gam_vec(i) = pz(i)*bwd[0](i)/pe;
+    //gam_vec(i) = bwd[0](i)/bwd[0].sum();
+    //gam_vec(i) = pabx[0](i);
+  }
+  return(gam_vec);
+}
+template<>
+Vec_st CTM<std::complex<double>>::make_gam_vec(Vec_st &pz){
+  Vec_st gam_vec = Vec_st::Zero(STNUM,1);
+  for(int i =  0; i < STNUM; i++){
+    gam_vec(i) = pz(i)*(bwd[0](i)).real()/pe.real();
+    //gam_vec(i) = bwd[0](i)/bwd[0].sum();
+    //gam_vec(i) = pabx[0](i);
+  }
+  return(gam_vec);
+}
+
+//明示的インスタンス化
+//template class CTM<double>;
+template class CTM<std::complex<double>>;

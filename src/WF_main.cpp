@@ -1,5 +1,6 @@
 #include <vector>
 #include <fstream>
+#include <omp.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -7,7 +8,16 @@
 #include <algorithm>
 #include <chrono>
 #include <wright_fisher_estimater.h>
+#include <boundary.hpp>
 #include <cmdline.h>
+#define TIME(PROCESS,TAG)  start5 = chrono::system_clock::now();;PROCESS;end5 = std::chrono::system_clock::now();dur5 = end5 - start5;msec5 = std::chrono::duration_cast<std::chrono::microseconds>(dur5).count();std::cout<<TAG <<"\t"<< msec5 << " milli sec \n";
+#ifndef TIME
+#define TIME(PROCESS,TAG)  PROCESS;
+#endif
+auto start5 = chrono::system_clock::now();
+auto end5 = std::chrono::system_clock::now();       // 計測終了時刻を保存
+auto dur5 = end5 - start5;        // 要した時間を計算
+auto msec5 = std::chrono::duration_cast<std::chrono::milliseconds>(dur5).count();
 using namespace std;
 static double t_smpl = 0.1;
 static double gamma_smpl = 5;
@@ -18,93 +28,6 @@ T_n uniform_distribution(mt19937 &_mt,T_n min,T_n max){//[min,max]
 }
 random_device rd;
 mt19937 gen(rd());
-vector<string> split(const string &str, char delim){
-  vector<string> res;
-  size_t current = 0, found;
-  while((found = str.find_first_of(delim, current)) != string::npos){
-    res.push_back(string(str, current, found - current));
-    current = found + 1;
-  }
-  res.push_back(string(str, current, str.size() - current));
-  return res;
-}
-vector<vector<vector<double > > > read_sim_file(string filename,bool aflag=false){
-  ifstream ifs( filename );
-  if(!ifs ) {
-    cout << "Error:Input data file not found" << endl;
-    exit(-1);
-  }
-  vector<vector<vector<double> > > data;
-  int n = 0;
-  string str;
-  while( getline( ifs, str ) ){
-    if(str.size()<1){
-      cout<<"Input is empty"<<endl;
-      exit(-1);
-    }
-    vector<vector<double> > one_record;
-    string token;
-    istringstream stream( str );
-    int m = 0;
-    while( getline( stream, token, '\t' ) ) {
-      vector<double> same_init;
-      string subtoken;
-      istringstream substream( token );
-      int k = 0;
-      while( getline( substream, subtoken, ',' ) ) {
-	stringstream subss;
-	double val;
-	subss << subtoken;
-	subss >>val;
-	same_init.push_back(val);
-	k++;
-      }
-      //cout<<"k"<<k<<endl;
-      one_record.push_back(same_init);
-      m++;
-    }
-    //cout<<"m"<<m<<endl;
-    //if not all data for parameter divede data
-    if(!aflag || data.size()== 0){
-      data.push_back(one_record);
-    }else{
-      data[0].insert(data[0].end(),one_record.begin(),one_record.end());
-    }
-    n++;
-  }
-  return(data);
-}
-void sample_register(WFE& wfe,vector<vector<double> > one_record,vector<vector<double> > one_recordc,int genpt,bool add_f=false){
-  for(int i = 0;i < one_record.size();i++){
-    vector<double> data = one_record[i];
-    vector<double> datac;
-    if(one_recordc.size() > 0){
-       datac = one_recordc[i];
-    }else{
-      datac = {};
-    }
-    vector<int> apl,bpl,acpl,bcpl;
-    vector<double> tpl,tcpl;
-    for(int d = 0;d < data.size()/3;d++){
-      double alpha = (double)data[3*d];
-      apl.push_back(alpha);
-      double beta = (double)data[3*d+1];
-      bpl.push_back(beta);
-      double time = (double)data[3*d+2]/genpt;
-      tpl.push_back(time);
-    }
-    for(int d = 0;d < datac.size()/3;d++){
-      double alpha = (double)datac[3*d];
-      acpl.push_back(alpha);
-      double beta = (double)datac[3*d+1];
-      bcpl.push_back(beta);
-      double time = (double)datac[3*d+2]/genpt;
-      //cout<<time<<endl;
-      tcpl.push_back(time);
-    }
-    wfe.data_add(apl,bpl,tpl,acpl,bcpl,tcpl);
-  }
-}
 vector<double> afs_reader(string afs_file){
   ifstream ifs(afs_file);
   if(!ifs ) {
@@ -124,105 +47,169 @@ vector<double> afs_reader(string afs_file){
   }    
   return(afs);
 }
-Vec_2d estimate_process(WFE &wfe,vector<bool> opt_flag,double psize,double slc,double genpt,int snum,vector<double> afs){
-    int hy_count = 0;
-    Vec_2d ftheta(2,1);
-    ftheta(0) = psize;
-    ftheta(1) = slc;
-    Vec_2d theta(2,1);
-    wfe.optimize(ftheta,opt_flag,genpt,snum,afs);
-    theta = wfe.ans_get();
-    return(theta);
-}
-void output_process(WFE &wfe,ofstream &ofs,Vec_2d theta,double psize,string genl,double msec){
-    cout <<theta.str()<<endl;
-    ofs<<theta(0)<<"\t"<<theta(1);
-    cout <<"Population size"<<":"<<"\t";
-    cout <<theta(0)<<endl;
-    cout <<"Selection coefficient"<<":"<<"\t";
-    cout <<theta(1)<<endl;
-    double chisq = wfe.stat_chi2();
-    cout<<"Likelihood ratio:"<<"\t"<<chisq<<endl;
+void output_process(ofstream &ofs,Vec_3d theta, double chisq ,double msec){
+  //cout <<theta.str()<<endl;
+    ofs<<theta(0)<<"\t"<<theta(1)<<"\t"<<theta(2);
+    //cout <<"Population size"<<":"<<"\t";
+    //cout <<theta(0)<<endl;
+    //cout <<"Selection coefficient"<<":"<<"\t";
+    //cout <<theta(1)<<endl;
+    //cout <<"Dominance"<<":"<<"\t";
+    //cout <<theta(2)<<endl;
+    //cout<<"Likelihood ratio:"<<"\t"<<chisq<<endl;
     ofs<<"\t"<<chisq;
-    cout<<"Run time:"<<"\t"<<msec<<endl;
+    //cout<<"Run time:"<<"\t"<<msec<<endl;
     ofs<<"\t"<<msec;
     ofs <<endl;
+}
+string estimate_process(vector<bool> opt_flag,double psize,double slc, double dom,double genpt,int snum, double beta, double dom_beta,vector<double> afs,Data& data, bool avd_flag,BDR bdr, string oafs_file = ""){
+    auto start = chrono::system_clock::now();
+    // 計測スタート時刻を保存
+    WFE wfe;
+    Vec_3d ftheta(3,1);
+    ftheta(0) = psize;
+    ftheta(1) = slc;
+    ftheta(2) = dom;
+    wfe.optimize(data,ftheta,opt_flag,genpt,snum,afs,bdr,beta, dom_beta,avd_flag);
+    Vec_3d theta = wfe.ans_get();
+    auto end = std::chrono::system_clock::now();       // 計測終了時刻を保存
+    auto dur = end - start;        // 要した時間を計算
+    auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
+      // 要した時間をミリ秒（1/1000秒）に変換して表示
+    //std::cout << msec << " milli sec \n";
+    Vec_3d est_var = wfe.estimate_variance();
+    double chisq = wfe.stat_chi2();
+    stringstream sfs;
+    sfs<<theta(0)<<"\t"<<theta(1)<<"\t"<<theta(2);
+    //cout <<"Population size"<<":"<<"\t";
+    //cout <<theta(0)<<endl;
+    //cout <<"Selection coefficient"<<":"<<"\t";
+    //cout <<theta(1)<<endl;
+    //cout <<"Dominance"<<":"<<"\t";
+    //cout <<theta(2)<<endl;
+    //cout<<"Likelihood ratio:"<<"\t"<<chisq<<endl;
+    sfs<<"\t"<<est_var(0)<<"\t"<<est_var(1);
+    sfs<<"\t"<<chisq;
+    //cout<<"Run time:"<<"\t"<<msec<<endl;
+    sfs<<"\t"<<est_var(2);
+    sfs <<endl;
+    //afs estimation
+    if(oafs_file != ""){
+      ofstream ofs_afs;
+      ofs_afs.open(oafs_file);
+      wfe.afs_get();
+      ofs_afs<<wfe.afs_get();
+      ofs_afs.close();
+      //cout<<wfe.afs_get().str();
+    }
+    return(sfs.str());
 }
    
 // args: psize generations gamma sigma
 int main(int argc,char* argv[]){
   //parsecommand line and get population, generations, selection, and filename
   cmdline::parser p;
-  p.add<int>("discretization", 'd', "number of discretization of AF",false,50);
-  p.add<int>("population", 'p', "population of system",false,500);
+  cout<<"begin"<<endl;
+  p.add<int>("discretization", 'd', "number of discretization of AF",false,20);
+  p.add<int>("threads", 't', "number of threads",false,1);
+  p.add<double>("beta", 'b', "hyper parameter of Dirichlet",false,1.5);
+  p.add<double>("dom_beta", 'c', "hyper parameter of Beta dist of dominance",false,0);
+  p.add<int>("population", 'p', "population of system",false,250);
   p.add<double>("selection", 's', "selection coefficient",false,0);
+  p.add<double>("dominance", 'n', "dominance",false,0.5);
+  p.add<double>("dommin", 'y', "dominance",false,-0.5);
+  p.add<double>("dommax", 'x', "dominance",false,1.5);
   p.add<string>("generation", 'g', "list of number of generations for experiments",false,"");
-  p.add<string>("output", 'o', "output file");
-  p.add<string>("input", 'i', "input file  for case");
-  p.add<string>("control", 'c', "input file of control",false);
+  p.add<string>("output", 'o', "output file",false,"/Users/kojimayasuhiro/Projects/wfeed/tmp/validation/rlt_sample.est");
+  p.add<string>("input", 'i', "input file  for case",false,"/Users/kojimayasuhiro/Projects/wfeed/tmp/validation/test_real.dat");
   p.add<string>("afs", 'q', "file of allele frequency spectrum",false);
-  p.add("fslc", 'f', "flag for slection with no value");
-  p.add("fpop", 'l', "flag for slection");
+  p.add<string>("oafs", 'r', "output file of allele frequency spectrum",false,"");
+  p.add<string>("fopt", 'f', "flag for optimization p: population s: selection d:dominance a: allele frequency spectrum",false,"s");
   p.add("allfile", 'a', "estimate one parameter from file of all");
+  p.add("fix", 'l', "fix discretization");
   p.add("help", 0, "print help");
   if (!p.parse(argc, argv)||p.exist("help")){
     std::cout<<p.error_full()<<p.usage();
     return 0;
   }
   int snum = p.get<int>("discretization");
+  double beta = p.get<double>("beta");
+  double dom_beta = p.get<double>("dom_beta");
   int psize = p.get<int>("population");
+  int num_thread = p.get<int>("threads");
   double slc = p.get<double>("selection");
+  double dom = p.get<double>("dominance");
+  double dom_min = p.get<double>("dommin");
+  double dom_max = p.get<double>("dommax");
   string fname = p.get<string>("input");
   string ofname = p.get<string>("output");
   string genl = p.get<string>("generation");
   bool cflag = true;
   string fnamec;
-  if(p.exist("control")){
-    fnamec = p.get<string>("control");
-  }else{
-    cflag = false;
-  }
   vector<double> afs;
   if(p.exist("afs")){
     afs = afs_reader(p.get<string>("afs"));
   }
   ofstream ofs;
   ofs.open(ofname);
-  vector<bool> opt_flag;
-  if(p.exist("fpop")){
-    opt_flag.push_back(true);
-  }else{
-    opt_flag.push_back(false);
+  string opt_code = p.get<string>("fopt");
+  vector<bool> opt_flag = {false,false,false,false};
+  if(opt_code.find("p") != string::npos){
+    opt_flag[0] = true;
   }
-  if(p.exist("fslc")){
-    opt_flag.push_back(true);
-  }else{
-    opt_flag.push_back(false);
+  if(opt_code.find("s") != string::npos){
+    opt_flag[1] = true;
   }  
+  if(opt_code.find("d") != string::npos){
+    opt_flag[2] = true;
+  }  
+  if(opt_code.find("a") != string::npos){
+    opt_flag[3] = true;
+  }
+  bool avd_flag = false;
+  if(opt_code.find("v") != string::npos){
+    avd_flag = true;
+  }
+  Data data;
+  data.read_file(fname);
+  int itr_num = data.line_num;
+  double genpt = 1;
+  Vec_3d ftheta(3,1);
+  ftheta(0) = psize;
+  ftheta(1) = slc;
+  ftheta(2) = dom;
   
-  vector<double> null_theta = {1,0};
-  double genpt = (double)psize*2;
-  vector<vector<vector<double> > > data = read_sim_file(fname,p.exist("allfile"));
-  vector<vector<vector<double> > > datac;
-  if(cflag){
-    datac  = read_sim_file(fnamec);
+  vector<int> snum_list;
+  int init_snum = 20;
+  if(p.exist("fix") || opt_flag[0]){
+    cout<<"snum fixed"<<endl;
+    init_snum = snum;
+  } 
+  for(int add_snum = init_snum; add_snum < snum+1;add_snum += 10){
+    snum_list.push_back(add_snum);
   }
-  for(int d = 0;d < data.size();d++){//data
-    WFE wfe;
-    cout<<data[d].size()<<endl;
-    //register each row
-    vector<vector<double > > one_record = data[d];
-    vector<vector<double > > one_recordc = {};
-    sample_register(wfe,one_record,one_recordc,genpt,true);
-    auto start = chrono::system_clock::now();      // 計測スタート時刻を保存
-    Vec_2d theta = estimate_process(wfe,opt_flag,psize,slc,genpt,snum,afs); //パラメータ推定
-    auto end = std::chrono::system_clock::now();       // 計測終了時刻を保存
-    auto dur = end - start;        // 要した時間を計算
-    auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
-    // 要した時間をミリ秒（1/1000秒）に変換して表示
-    std::cout << msec << " milli sec \n";
-    output_process(wfe,ofs,theta,psize,genl,msec);
+  BDR bdr(ftheta,snum_list,opt_flag[2],dom_min,dom_max);
+  if(p.exist("allfile")){
+    data.load_all();
+    string rlt = estimate_process(opt_flag, psize, slc, dom, genpt, init_snum, beta, dom_beta, afs, data,avd_flag,bdr,p.get<string>("oafs")); //パラメータ推定
+    ofs << rlt;
+  }else{
+    vector<Data> data_vec;
+    for(int i = 0; i < num_thread; i++){
+      data_vec.push_back(data);
+    }
+    vector<string> rlt_vec;
+    rlt_vec.resize(itr_num);
+#pragma omp parallel for num_threads(num_thread)
+    for(int d = 0;d < itr_num;d++){//data
+      int t_num = omp_get_thread_num();
+      data_vec[t_num].load_line(d);
+      rlt_vec[d] = estimate_process(opt_flag, psize, slc, dom, genpt, init_snum, beta, dom_beta, afs, data_vec[t_num], avd_flag,bdr); //パラメータ推定
+    }
+    string rlt = accumulate(rlt_vec.begin(),rlt_vec.end(),string(""));
+    ofs << rlt;
   }
+  ofs.close();
   return(0);
 }
 //-p 1200 -g 60 -s 0.005 -i tmp/sim/simg_p1200_gen60_slc0.005.data -o tmp/o.txt

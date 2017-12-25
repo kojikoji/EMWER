@@ -3,11 +3,24 @@
 #include<iostream>
 #include<data.h>
 #include<transition_matrix.h>
-typedef Matrix<double> Mat_st;
-typedef Matrix<double> Vec_st;
-typedef Matrix<double> TVec_st;
-typedef Matrix<double> Vec_mst;
-typedef Matrix<double> Vec_2d;
+
+typedef Eigen::MatrixXd Mat_st;
+//typedef Matrix<std::complex<double>> Mat_stc;
+typedef Eigen::MatrixXd Vec_st;
+//typedef Matrix<std::complex<double>> Vec_stc;
+typedef Eigen::MatrixXd TVec_st;
+typedef Eigen::MatrixXd Vec_mst;
+typedef Eigen::MatrixXd Vec_3d;
+typedef Eigen::MatrixXd Vec;
+
+#define EIGEN_NO_DEBUG // コード内のassertを無効化．
+#define EIGEN_DONT_PARALLELIZE // 並列を無効化．
+#define EIGEN_MPL2_ONLY // LGPLライセンスのコードを使わない．
+
+#include <Eigen/Core>
+//#include <Eigen/Dense>
+#include <Eigen/Eigenvalues> 
+
 //caluculate q function
 class CQF{
   // number of discretization of AF
@@ -15,56 +28,58 @@ class CQF{
   //STNUM-1
   int MSTNUM;
   double H;
-  CTM ctm,ctmc;
-  Data data,datac;
-  Vec_2d sigam;
-  Vec_2d sigamc;
-  double pop,slc,genpt;
-  double fs;
-  double nsp;
-  double nsm;
-  double fsc;
-  double nspc;
-  double nsmc;
+  //CTM<double> ctmr;
+  CTM<std::complex<double>> ctmr;
+  Data data;
+  double dom_beta;
+  double beta;
+  double genpt;
+  Vec_ist fs_vec;
+  Vec_ist np_vec;
+  Vec_ist nm_vec;
   double log_pe;
   double vdlh,vdlh_dpop,vdlh_dslc;
+  double dom,slc;
   Vec_st pz;
  public:
   bool save_flag = false;
+  bool afs_opt = false;
   CQF();
   //set genpt
-  void init(double _genpt,int snum,vector<double> afs);
+  void init(double _genpt,int snum,vector<double> afs, double _beta=2, double _dom_beta=0);
+  //change allele 1 - x 
+  void change_allele();
   //give data which have stactm. and end and time
-  void data_add(vector<int> apl,vector<int> bpl,vector<double> tpl,vector<int> acpl,vector<int> bcpl,vector<double> tcpl);
+  void load_data(Data& _data);
   void data_clear();
-  //refresh sigam for pop slc
-  void to_sigam();
   Vec_st prior_make(vector<double> afs);
   //ctm.and ctm. is refershed foctm.new pactm.metectm. 
-  void refresh(double _pop,double _slc);
+  bool refresh(Vec theta);
   //all element refresh (including umat uimat)
-  void arefresh(double _pop,double _slc);
+  bool arefresh(Vec theta);
   //caluculate llh
   double llh();
-  double llh_dsig();
-  double llh_dgam();
   double llh_dpop();
   double llh_dslc();
+  double llh_ddom();
+  Mat_st make_info_mat(Vec theta);
   double next_slc();
   double next_pop();
   /*
   //for continuous discrete fix
-  void cont_dis_set(double _pop,double _slc);
+  void cont_dis_set(double _pop,double _slc,double _dom);
   double lpdis(int i, int j);
   double lpdis_dpop(int i, int j);
   double lpdis_dslc(int i, int j);
-  void drefresh(double _pop,double _slc);
+  void drefresh(double _pop,double _slc,double _dom);
   double dlh();
   double dlh_dpop();
   double dlh_dslc();
   */
   //get log likelihood
   double get_log_pe();
+  Vec_st get_pz();
   double set_sflag(bool _save_flag);
+  void print_loaded_data();
 };
 #endif

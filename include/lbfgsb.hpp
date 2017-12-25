@@ -149,11 +149,11 @@ public:
     
     if (-2 < _iprint) {
       if (_iter < _maxit && _fail == 0) {
-	print_message("lbfgsb converged. iter=%d", _iter);
+	//print_message("lbfgsb converged. iter=%d", _iter);
       } else {
-	print_message("stopped after %d iterations. ", _iter);
+	//print_message("stopped after %d iterations. ", _iter);
       }
-      print_message("final  value %f \n", _f);
+      //print_message("final  value %f \n", _f);
     }
     
     _count_0 = 0;
