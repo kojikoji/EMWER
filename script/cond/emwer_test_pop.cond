@@ -3,8 +3,8 @@ pop:250
 slc:0
 dep:30
 rep:3
-disc:30
-opt:pop
+disc:100
+opt:p
 chrom:2L
 inter:1
 num:100

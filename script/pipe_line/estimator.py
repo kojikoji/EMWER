@@ -63,12 +63,8 @@ class Estimator:
         cmd = " ".join([cmd,"-p",self.state['pop']])
         cmd = " ".join([cmd,"-i",ifn])
         cmd = " ".join([cmd,"-o",ofn])
-        # f flag optimize selection
-        if self.state['opt'] == "slc":
-            cmd = " ".join([cmd,"-f"])
-        # l flag optimize population
-        else:
-            cmd = " ".join([cmd,"-l"])
+        #which parameter estimate
+        cmd = " ".join([cmd,"-f",self.state['opt']])        
         # one estimate for all data
         if 'all' in self.state:
             cmd = " ".join([cmd,"-a"])            

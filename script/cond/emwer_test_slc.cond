@@ -1,10 +1,10 @@
-gen:0,30
+gen:010,30,50,60
 pop:250
 slc:0.05
 dep:100
-rep:20
-disc:30
-opt:slc
+rep:3
+disc:100
+opt:s
 num:2
 bd:0.05,0.95
 afs:unif

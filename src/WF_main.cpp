@@ -88,7 +88,7 @@ string estimate_process(vector<bool> opt_flag,double psize,double slc, double do
     //cout <<"Dominance"<<":"<<"\t";
     //cout <<theta(2)<<endl;
     //cout<<"Likelihood ratio:"<<"\t"<<chisq<<endl;
-    sfs<<"\t"<<est_var(0)<<"\t"<<est_var(1);
+    sfs<<"\t"<<1.96*sqrt(est_var(0))<<"\t"<<1.96*sqrt(est_var(1));
     sfs<<"\t"<<chisq;
     //cout<<"Run time:"<<"\t"<<msec<<endl;
     sfs<<"\t"<<est_var(2);
