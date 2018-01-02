@@ -13,19 +13,6 @@ auto end3 = std::chrono::system_clock::now();
 auto dur3 = end3 - start3;
 auto msec3 = std::chrono::duration_cast<std::chrono::milliseconds>(dur3).count();
 template <class T>
-void print_vec(vector<T> vec){
-  for( auto itr = vec.begin(); itr != vec.end(); itr++){
-    cout<<"\t"<<*itr;
-  }
-  cout<<endl;
-}
-double no_minus(double val){
-  if(val > 0){
-    return(val);
-  }else{
-    return(0);
-  }
-}
 /*
 Mat_st multi_each(Mat_st mat1,Mat_st mat2){
   Mat_st ans = Mat_st::Zero(mat1.rows(),mat1.cols());
