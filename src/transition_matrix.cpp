@@ -1,6 +1,5 @@
 #include<Matrix.h>
 #include<transition_matrix.h>
-#include<eigen_decomp.hpp>
 //#define TIME(PROCESS,TAG)  startT = chrono::system_clock::now();;PROCESS;endT = std::chrono::system_clock::now();durT = endT - startT;msecT = std::chrono::duration_cast<std::chrono::microseconds>(durT).count();std::cout<<TAG <<"\t"<< msecT << " micro sec \n";
 #ifndef TIME
 #define TIME(PROCESS,TAG)  PROCESS;
@@ -474,48 +473,6 @@ Mat_st CTM<std::complex<double>>::make_exp_tr(double t){
   return((u_mat*eld_mat*ui_mat).real());
 }
 
-
-template<class T>
-Mat_st CTM<T>::make_exp_tr_num(double t,int num){
-  EigenDecomp ed;
-  vector<double> r_mat(STNUM*STNUM,0);
-  using comp_t = std::complex<double>;
-  comp_t zi = (0,0);
-  vector<comp_t> p_mat;
-  vector<comp_t> pinv_mat;
-  vector<comp_t> d_vec;
-  for(int j = 1;j < STNUM-1;j++){
-    r_mat[j-1+j*STNUM] = rm_vec(j);
-    r_mat[j+1+j*STNUM] = rp_vec(j);
-    r_mat[j+j*STNUM] = -r_mat[j+1+j*STNUM] - r_mat[j-1+j*STNUM];
-  }
-  ed.solve(p_mat,d_vec,pinv_mat,r_mat);
-  Mat_stc p_mat_ei = Mat_stc::Zero(STNUM,STNUM);
-  Mat_stc pinv_mat_ei = Mat_stc::Zero(STNUM,STNUM);
-  Mat_stc d_mat_ei = Mat_stc::Zero(STNUM,STNUM);
-  Mat_st r_mat_ei = Mat_st::Zero(STNUM,STNUM);
-  for(int i = 0;i < STNUM;i++){
-    d_mat_ei(i,i) = d_vec[i];
-    for(int j = 0;j < STNUM;j++){
-      p_mat_ei(i,j) = p_mat[i+j*STNUM];
-      pinv_mat_ei(i,j) = pinv_mat[i+j*STNUM];
-      r_mat_ei(i,j) = r_mat[i+j*STNUM];
-    }
-  }
-  /*
-  Mat_st id_mat = Mat_st::Zero(STNUM,STNUM);
-  Mat_st r_mat = make_r_mat();
-  for(int j = 0;j < STNUM;j++){
-    id_mat(j,j) = 1;
-  }
-  Mat_st etr_num_mat = id_mat;
-  for(int i = 0; i < num; i++){
-    double coff = 1.0/num;
-    etr_num_mat = etr_num_mat*(id_mat + t*coff*r_mat);
-    }*/
-  Mat_st etr_num_mat = Mat_st::Zero(STNUM,STNUM);
-  return(etr_num_mat);
-}
 //明示的インスタンス化
 template class CTM<double>;
 template class CTM<std::complex<double>>;
