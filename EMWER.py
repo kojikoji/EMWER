@@ -1,14 +1,14 @@
 #-*- coding: utf-8 -*-
 import sys
 #sys.path.append("../cproc")
-from script.pipe_line.cproc import cproc 
+from script.cproc import cproc 
 import os
 import argparse
-#from script.pipe_line.sim_line_independent import Sim_line_independent
-from script.pipe_line.condition_controler import Condtion_controler
-from script.pipe_line.list_mkdir import List_mkdir
-from script.pipe_line.estimator import Estimator
-from script.pipe_line.file_namer import File_namer
+#from script.sim_line_independent import Sim_line_independent
+from script.condition_controler import Condtion_controler
+from script.list_mkdir import List_mkdir
+from script.estimator import Estimator
+from script.file_namer import File_namer
 class Conducter_sim(Condtion_controler,List_mkdir,Estimator,File_namer):
     #and root directory of this experiment
     def __init__(self,root_dir='',cp=cproc(False,tflag=True),unit=3):
