@@ -12,7 +12,7 @@ auto start3 = std::chrono::system_clock::now();
 auto end3 = std::chrono::system_clock::now();
 auto dur3 = end3 - start3;
 auto msec3 = std::chrono::duration_cast<std::chrono::milliseconds>(dur3).count();
-template <class T>
+//template <class T>
 /*
 Mat_st multi_each(Mat_st mat1,Mat_st mat2){
   Mat_st ans = Mat_st::Zero(mat1.rows(),mat1.cols());

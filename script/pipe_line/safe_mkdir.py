@@ -1,1 +1,0 @@
-class Safe_mkdir:

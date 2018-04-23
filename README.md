@@ -68,7 +68,7 @@ $ python script/pipe_line/EMWER.py -c script/cond/emwer_test_pop.cond
 
 Furthermore,you can test the estimation
 ```shell-session
-$ python script/pipe_line/EMWER.py -c script/cond/emwer_test_real.cond -s data/real_data_test.sync
+$ python EMWER.py -c script/cond/emwer_test_real.cond -s data/real_data_test.sync
 ```
 `-s` specify the synchronized file (see detail in https://sourceforge.net/p/popoolation2/wiki/Tutorial/) of ER data[Orozco-terWengel,2012].
 
