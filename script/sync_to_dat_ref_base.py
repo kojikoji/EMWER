@@ -5,9 +5,6 @@ from scipy.stats import binom
 def get_val_list(line,st,ed): 
     list_hap = line.strip().split("\t")
     list_hap = list_hap[st:ed]
-    #print(st)
-    #print(ed)
-    #print(list_hap)
     return(list_hap)
 def get_ref(line):
     refl = "\t".join(get_val_list(line,0,3))
@@ -21,8 +18,6 @@ def make_base_dict(frql):
     return(base_dict)
 def make_af(syncl,ref_char):
     afl = []
-    #print(pal)
-    #print(sal)
     for sync in syncl:
         frql = np.array(map(int,sync.split(":")))
         base_dict = make_base_dict(frql)
@@ -31,7 +26,6 @@ def make_af(syncl,ref_char):
         var_ac = depth - ref_ac
         afl.append([str(var_ac),str(ref_ac)])
     return(afl)
-# rep-gen が正しくした配列での各要素の元の配列での順番
 def ind_list_maker(genl,repl):
     if len(genl) != len(repl) :
         print("ERROR!!:: genl and repl is different length")
@@ -43,9 +37,7 @@ def ind_list_maker(genl,repl):
         gri['gen'] = genl[ind]
         gri['rep'] = repl[ind]
         gri_lst.append(gri)
-    #先にgen
     sorted_gri_lst = sorted(gri_lst,key = lambda x : x['gen'])
-    #次にrepo
     sorted_gri_lst = sorted(sorted_gri_lst,key = lambda x : x['rep'])
     sorted_ind_lst = []
     for gri in sorted_gri_lst:
@@ -88,11 +80,7 @@ def sync_to_dat(sync_file,dat_file,ref_file,afs_file,genl,repl,disc,bd):
         prep = '-1'
         ref_char = line.strip().split('\t')[2]
         afl = make_af(get_val_list(line,3,3+len(genl)),ref_char)
-        #print(afl)
-        #print(len(afl))
         ind_list =  ind_list_maker(genl,repl)
-        print(genl)
-        print(ind_list)
         for ind in ind_list:
             #if population is changed tab is inserted
             if repl[ind] != prep:

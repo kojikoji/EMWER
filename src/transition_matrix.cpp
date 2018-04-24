@@ -1,13 +1,4 @@
-//#include<Matrix.h>
 #include<transition_matrix.h>
-//#define TIME(PROCESS,TAG)  startT = chrono::system_clock::now();;PROCESS;endT = std::chrono::system_clock::now();durT = endT - startT;msecT = std::chrono::duration_cast<std::chrono::microseconds>(durT).count();std::cout<<TAG <<"\t"<< msecT << " micro sec \n";
-#ifndef TIME
-#define TIME(PROCESS,TAG)  PROCESS;
-#endif
-auto startT = chrono::system_clock::now();
-auto endT = std::chrono::system_clock::now();       // 計測終了時刻を保存
-auto durT = endT - startT;        // 要した時間を計算
-auto msecT = std::chrono::duration_cast<std::chrono::milliseconds>(durT).count();
 
 template<class T>
 CTM<T>::CTM(){}
@@ -21,7 +12,6 @@ void CTM<T>::init(int snum){
   ld.resize(STNUM,1);
   u_mat.resize(STNUM,STNUM);
   ui_mat.resize(STNUM,STNUM);
-  //cout<<"substi"<<endl;
   //c mean center
   rc_vec = Vec_st::Zero(1,STNUM);
   //p mean plus
@@ -50,7 +40,6 @@ void CTM<T>::init(int snum){
   lrpddom_vec = Vec_st::Zero(1,STNUM);
   //m mean minus
   lrmddom_vec = Vec_st::Zero(1,STNUM);
-  //cout<<"comp"<<endl;
 }
 template<class T>
 double CTM<T>::f_rq(double x){
@@ -204,19 +193,16 @@ bool CTM<T>::param_refresh(Vec_3d theta){
   neff = theta(0);
   slc = theta(1);
   dom = theta(2);
-  //cout<<theta.str()<<endl;
   //original r mat
   int rp_flag= 0;  
   int rm_flag= 0;
   bool fail = false;
-  //cout<<"r"<<endl;
   //pointers
   double *rp_ptr = rp_vec.data();
   double *rm_ptr = rm_vec.data();
   double *lrp_ptr = lrp_vec.data();
   double *lrm_ptr = lrm_vec.data();
   double *rc_ptr = rc_vec.data();
-  TIME(
   for(int j = 1;j < STNUM-1;j++){
     double xp = dlt*(j+1);
     double xm = dlt*j;
@@ -234,14 +220,11 @@ bool CTM<T>::param_refresh(Vec_3d theta){
     if(rm_ptr[j]<0){
       rm_flag--;
     }
-  },"rmat")
-  //cout<<"r comp"<<endl;
+  }
   if(rp_flag < 0){
-    //cout<<"rp < 0 "<<slc<<endl;
     fail = true;
   }
   if(rm_flag < 0){
-    //cout<<"rm < 0 "<<slc<<endl;
     fail = true;
   }
   //dneff r mat
@@ -249,9 +232,7 @@ bool CTM<T>::param_refresh(Vec_3d theta){
   double *lrpdneff_ptr = lrpdneff_vec.data();
   double *lrmdneff_ptr = lrmdneff_vec.data();
   double *rcdneff_ptr = rcdneff_vec.data();
-  //Vec_mst rpdneff_vec = Vec_st::Zero(STNUM,1);
   //m mean minus
-  //Vec_mst rmdneff_vec = Vec_st::Zero(STNUM,1);
   for(int j = 1;j < STNUM-1;j++){
     double xp = dlt*(j+1);
     double xm = dlt*j;
@@ -264,7 +245,6 @@ bool CTM<T>::param_refresh(Vec_3d theta){
     lrpdneff_ptr[j] = rpdneff/rp_vec(j);    
     rcdneff_ptr[j] = -rmdneff -rpdneff;
   }
-  //cout<<"r dneff comp"<<endl;
 
   //dslc r mat
   //pointer
@@ -283,7 +263,6 @@ bool CTM<T>::param_refresh(Vec_3d theta){
     lrpdslc_ptr[j] = rpdslc/rp_ptr[j];    
     rcdslc_ptr[j] = -rmdslc -rpdslc;
   }
-  //cout<<"r dslc comp"<<endl;
 
   //ddom r mat
   double *lrpddom_ptr = lrpddom_vec.data();
@@ -301,7 +280,6 @@ bool CTM<T>::param_refresh(Vec_3d theta){
     lrpddom_ptr[j] = rpddom/rp_ptr[j];    
     rcddom_ptr[j] = -rmddom -rpddom;
   }
-  //cout<<"r ddom comp"<<endl;
   return(fail);
 }
 template<class T>
@@ -380,10 +358,6 @@ bool CTM<T>::dd_refresh(Vec_3d theta){
 
   return(fail);
 }
-/* DGEEV prototype */
-extern void dgeev( char* jobvl, char* jobvr, int* n, double* a,
-                int* lda, double* wr, double* wi, double* vl, int* ldvl,
-                double* vr, int* ldvr, double* work, int* lwork, int* info );
 
 //ld and u and ui mat refreshed about inner
 template<class T>
@@ -402,18 +376,6 @@ void CTM<std::complex<double>>::eigen_refresh(){
   u_mat = (es.eigenvectors());
   ui_mat = u_mat.inverse();    
 }
-/*
-//ld and u and ui mat refreshed about inner
-void CTM<T>::eigen_refresh(){
-  EigenDecomp ed;
-  Mat_st r_mat = make_r_mat();
-  ed.solve(u_mat.data(),ld.data(),ui_mat.data(),r_mat.data());
-  cout<<"ld"<<endl;
-  cout<<ld.str()<<endl;
-  cout<<(ui_mat*u_mat).str()<<endl;
-    
-}
-*/
 //all element refresh (including umat uimat)
 template<class T>
 bool CTM<T>::arefresh(Vec_3d theta){
@@ -473,6 +435,5 @@ Mat_st CTM<std::complex<double>>::make_exp_tr(double t){
   return((u_mat*eld_mat*ui_mat).real());
 }
 
-//明示的インスタンス化
 template class CTM<double>;
 template class CTM<std::complex<double>>;

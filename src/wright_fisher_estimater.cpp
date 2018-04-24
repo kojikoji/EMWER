@@ -1,4 +1,3 @@
-//extern STNUM Vec_3d
 #include<iostream>
 #include<q_function.h>
 #include<wright_fisher_estimater.h>
@@ -6,23 +5,13 @@
 #include<data.h>
 #include<math.h>
 #include <chrono>
-//#define TIME(PROCESS,TAG)  start4 = chrono::system_clock::now();;PROCESS;end4 = std::chrono::system_clock::now();dur4 = end4 - start4;msec4 = std::chrono::duration_cast<std::chrono::microseconds>(dur4).count();std::cout<<TAG <<"\t"<< msec4 << " milli sec \n";
-#ifndef TIME
-#define TIME(PROCESS,TAG)  PROCESS;
-#endif
-auto start4 = chrono::system_clock::now();
-auto end4 = std::chrono::system_clock::now();       // 計測終了時刻を保存
-auto dur4 = end4 - start4;        // 要した時間を計算
-auto msec4 = std::chrono::duration_cast<std::chrono::milliseconds>(dur4).count();
 bool WFE::refresh(Vec_st ntheta){
   qfun = 0;
   //qfun_d
   qfun_dpop = 0;
   qfun_dslc = 0;
   qfun_ddom = 0;
-  //TIME(
   bool fail = cqf.refresh(ntheta);
-  //,"qref");
   qfun += cqf.llh();
   //llh_d
   qfun_dpop += cqf.llh_dpop();
@@ -42,7 +31,6 @@ int WFE::CMR::operator()(vector<double>& x,double& fn,vector<double>& gr){
   upper.refresh(ntheta);
   //compute qfun and qfun_d
   //subsititute for fn and gr
-  //cout<<"dslc"<<upper.qfun_dslc<<endl;
   fn = -upper.qfun;
   gr.assign(x.size(),0);
   if(_opt_flag[0]){
@@ -59,8 +47,6 @@ int WFE::CMR::operator()(vector<double>& x,double& fn,vector<double>& gr){
 template<class T>
 void WFE::steepest_descent(T clh,vector<double> sbound,vector<double> dbound){//compute likelihood
   double pslc = theta(1);
-  //cout<<max_s<<endl;
-  //cout<<min_s<<endl;
   vector<double> lower = {10,sbound[0],dbound[0]};
   vector<double> upper = {3000,sbound[1],dbound[1]};
   vector<int> nbd = {2,2,2};
@@ -68,8 +54,6 @@ void WFE::steepest_descent(T clh,vector<double> sbound,vector<double> dbound){//
   minimizer.set_eps(1.0e-4);
   minimizer.set_maxit(30);
   minimizer.set_bounds(lower,upper,nbd);
-  //popr = 100;//pop/10;
-  //slcr = 1.0e-4;//slc/10;
   vector<double> ntheta0;
   for(int i = 0; i < theta.size(); i++){
     ntheta0.push_back(theta(i));
@@ -104,9 +88,6 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
   lh = cqf.get_log_pe();
   init_lh = lh;
   init_snum = snum;
-  //cout<<"slc:"<<theta(1)<<" lh:"<<lh<<endl;
-  //cout<<lh<<endl;
-  //cout<<theta.str()<<endl;
   if(theta(0) == 0){
     theta(0) = 100;
   }
@@ -122,7 +103,6 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
   Vec_3d ptheta;
   double  sdlt = 1.0e-3*snum;
   do{
-    //cout<<snum<<"theta0: "<<theta(0)<<endl;;
     //init snum changer
     bool snum_change = false;
     //refresh parameter
@@ -137,10 +117,8 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
       sdlt = 0.1;
       int sign_ptheta = (qfun_dslc > 0) - (qfun_dslc < 0);
       double qfun_dslc_ptheta = qfun_dslc;
-      //cout<<qfun_dslc<<endl;
-      //最初負の値に行こうとした時にアレルをひっくり返す
+      // when selection become negative, change the allele for caluculation
       if(qfun_dslc < 0 && count==0){
-	//cout<<"invert"<<endl;
 	cqf.change_allele();
 	cqf.arefresh(theta);
 	fail = refresh(ptheta);
@@ -151,7 +129,7 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
       double prop = 1.0;
       Vec_st sb_theta;
       int search_count = 0;
-      //傾き方向の境界値パラメータを探索
+      // search the boundary for the direction indicated by gradients
       sb_theta = ptheta;
       if(qfun_dslc > 0){
 	sb_theta(1) = bdr.get_upper();
@@ -159,7 +137,8 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
       if(qfun_dslc < 0){
 	sb_theta(1) = bdr.get_lower();
       }
-      //傾き方向の境界値パラメータの場合の傾きが同じなら状態数を増やす
+      // increase state number
+      // if gradient direction is same at the boundary for discretization
       refresh(sb_theta);
       int sign_bound = (qfun_dslc > 0) - (qfun_dslc < 0);
       if(sign_bound == sign_ptheta){
@@ -169,16 +148,14 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
       //snum change
       if(snum_change){
 	bool fail_increase = bdr.increase_state();
-	//状態数がこれ以上増えなければ境界値を推定値として終了
+	// stop estimation when state number reaches upper limit
 	if(fail_increase){
-	  //cout<<"in"<<endl;
 	  theta = sb_theta;
 	  calc_fail = cqf.arefresh(theta);
 	  lh = cqf.get_log_pe();
 	  break;
 	}
 	snum = bdr.get_snum();
-	//cout<<"snum to "<<snum<<endl;
 	cqf.init(genpt,snum,afs,beta, dom_beta);
 	pz_vec = cqf.get_pz();
 	calc_fail = cqf.arefresh(theta);
@@ -193,14 +170,10 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
     //steepest decent
     double c = 2.0;
     CMR cmr((*this),c,opt_flag);
-    TIME(steepest_descent(cmr,sbound,dbound),"opt");
-    //TIME(,"steep")
+    steepest_descent(cmr,sbound,dbound);
     count++;
-    TIME(calc_fail = cqf.arefresh(theta);,"aref")
+    calc_fail = cqf.arefresh(theta);
     lh = cqf.get_log_pe();
-    //cout<<"theta0: "<<theta(0)<<endl;;
-    //cout<<"sbound: "<<sbound[0]<<"\t"<<sbound[1]<<endl;
-    //cout<<"slc:"<<theta(1)<<" dom:"<<theta(2)<<" lh:"<<lh<<endl;
     Vec_3d res_vec = theta - ptheta;
     end_flag = fabs(res_vec(0)) < 1.0e-2 && fabs(res_vec(1)) < 1.0e-3 && fabs(res_vec(2)) < 1.0e-2;
     if(opt_flag[3]){
@@ -209,7 +182,6 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
       pz_vec = cqf.get_pz();
     }
     end_flag = end_flag || std::isnan(lh) || lh < plh;
-    //cout<<end_flag<<endl;
     if(count >= est_upper){
       cout<<"stop est"<<endl;
       calc_fail = true;
@@ -219,7 +191,6 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
     cout<<"calc failure"<<endl;
     sign_slc = 0;
   }
-  //cout<<"STATES:"<<snum<<endl;
 }
 Vec_3d WFE::ans_get(){
   return(theta);
@@ -274,7 +245,6 @@ Vec_3d WFE::estimate_variance(){
     est_var(1,0) = -info_mat_inv(1,1);
   }else{
     est_var(0,0) = -1/num_dslcslc;
-    //ldss = est_var(0,0);
     if(!opt_flag[1] && opt_flag[0]){
       //theta change  pop
       Vec_3d theta_pop = theta;

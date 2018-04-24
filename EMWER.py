@@ -56,4 +56,3 @@ if __name__=="__main__":
     root_dir = "tmp/" + (cond_file.split(".")[0]).split("/")[-1] + "/"
     cdt = Conducter_sim(root_dir,cp,unit = 5)
     cdt.conducter(cond_file,args.hap_file,args.sync_file)
-    print(cproc(False))

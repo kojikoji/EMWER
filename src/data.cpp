@@ -86,8 +86,6 @@ void Data::pabx_refresh(int _snum){
 	}
 	qx(0) = binom(0,apll[d][t],bpll[d][t]);
 	qx(snum-1) = binom(1.0,apll[d][t],bpll[d][t]);
-	//cout <<apll[d][t]<<" "<<bpll[d][t]<<endl;
-	//cout<<qx<<endl;
 	pabl.push_back(move(qx));
       }
       pabll.push_back(pabl);

@@ -27,7 +27,6 @@ class cproc:
         if self.nud > 0:
             #if number of undo command is remain, dont register cmd 
             self.nud -= 1
-            #print(pc)
         else:
             #if nud is 0, register cmd
             self.cmdlist.append(cmd)
@@ -137,12 +136,9 @@ if __name__=="__main__":
     cp.exe()
     cp.add("ls",'-a','-l')
     cp.exe()
-    #cp.add_args(['-a','-l'])    
-    #cp.mkqsf()
     cp.add("ls -a")
     cp.add("less test.txt")
     cp.add("ls -a")
-    #cp.job_type("sjob")
     cp.mkqsf()
     cp.qsub()    
     

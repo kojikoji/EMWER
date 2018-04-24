@@ -1,14 +1,6 @@
 #include<iostream>
 #include<q_function.h>
 #include <chrono>
-//#define TIME(PROCESS,TAG)  start2 = chrono::system_clock::now();;PROCESS;end2 = std::chrono::system_clock::now();dur2 = end2 - start2;msec2 = std::chrono::duration_cast<std::chrono::microseconds>(dur2).count();std::cout<<TAG <<"\t"<< msec2 << " milli sec \n";
-#ifndef TIME
-#define TIME(PROCESS,TAG)  PROCESS;
-#endif
-auto start2 = chrono::system_clock::now();
-auto end2 = std::chrono::system_clock::now();       // 計測終了時刻を保存
-auto dur2 = end2 - start2;        // 要した時間を計算
-auto msec2 = std::chrono::duration_cast<std::chrono::milliseconds>(dur2).count();
 CQF::CQF():data(){
 }
 void CQF::data_clear(){
@@ -33,7 +25,6 @@ void CQF::init(double _genpt,int snum,vector<double> afs, double _beta, double _
   pz = prior_make(afs);
   beta = _beta;
   dom_beta = _dom_beta;
-  //cout<<dom_beta<<endl;
   data.pabx_refresh(snum);
 }
 void CQF::change_allele(){
@@ -103,46 +94,40 @@ bool CQF::arefresh(Vec theta){
   refresh(theta);
   bool fail = false;
   auto aref_process = [&](auto &ctm){
-    TIME(ctm.arefresh(theta),"CTM AREF")
+    ctm.arefresh(theta);
     //parameter reset
     log_pe = 0;
     double slog_pe = 0;
-    //cout<<data.size()<<endl;  
     double std_gen = 30;
     Vec_st one_vec = element_each_double(1.0,STNUM,1);
     Vec_st gam_vec = Vec_st::Zero(STNUM,1);
     double est_snum = (one_vec.transpose()*ctm.make_exp_tr(std_gen)*one_vec)(0,0);
     save_flag = (abs(est_snum - STNUM) > 1);
-    //cout<<"data size " <<data.size()<<endl;
     for(int d = 0;d < data.size();d++){
       double pe;
       if(data.tpl(d).size() > 1){
 	//pre pab
-	TIME(ctm.lpe_refresh(data.pabl(d),data.tpl(d),pz),"LPE");
+	ctm.lpe_refresh(data.pabl(d),data.tpl(d),pz);
 	pe = ctm.pe_get();
 	if(pe < 0 || pe > 1.0){fail = true;cout<<"pe"<<pe<<endl;}
-	//cout<<"likelihood "<<pe<<endl;
       }
-      TIME(
-	   log_pe += log(pe);
-	   ctm.kapd_refresh();
-	   if(afs_opt){
-	     gam_vec = gam_vec + ctm.make_gam_vec(pz);
-	   },"KAPD");
+      log_pe += log(pe);
+      ctm.kapd_refresh();
+      if(afs_opt){
+	gam_vec = gam_vec + ctm.make_gam_vec(pz);
+      }
     }
     //slc prior
     log_pe += -dom_beta*slc*slc/2;
-    TIME(
-	 if(afs_opt){
-	   cout<<pz<<endl;
-	   gam_vec = gam_vec +(beta-1)*one_vec;
-	   pz = (1/gam_vec.sum())*gam_vec;
-	 }
-	 ctm.tkap_mat_refresh(); 
-	 fs_vec = ctm.make_fs_vec(); 
-	 np_vec = ctm.make_np_vec(); 
-	 nm_vec = ctm.make_nm_vec();
-	 ,"FSVEC")
+    if(afs_opt){
+      cout<<pz<<endl;
+      gam_vec = gam_vec +(beta-1)*one_vec;
+      pz = (1/gam_vec.sum())*gam_vec;
+    }
+    ctm.tkap_mat_refresh(); 
+    fs_vec = ctm.make_fs_vec(); 
+    np_vec = ctm.make_np_vec(); 
+    nm_vec = ctm.make_nm_vec();
     if(fs_vec.real().minCoeff() < 0){
       if(abs(fs_vec.real().minCoeff())/fs_vec.real().maxCoeff() > 0.01){
 	fail = true;cout<<"fs"<<endl;
@@ -161,10 +146,6 @@ bool CQF::arefresh(Vec theta){
 	cout<<nm_vec.real().minCoeff()<<endl;
       }
     }
-    //cout<<"test"<<endl;
-    //cout<<dom<<endl;
-    //cout<<dom_beta<<endl;   
-    //cout<<(dom_beta-1) * log(dom) + (dom_beta - 1) * log(1-dom)<<endl;
   };
   aref_process(ctmr);
   return(fail);
@@ -237,25 +218,10 @@ Mat_st CQF::make_info_mat(Vec theta){
   return(info_mat);
 }
 double CQF::next_slc(){
-  /*
-  double a = pop*H*(nsp - nsm);
-  double b = fs*genpt/H;
-  double c = sqrt(pow(a,2)+pow(b,2));
-  double d;
-  if(b > 0){
-    d = (a + c)/b;
-  }else{
-    d = (a - c)/b;
-  }
-  double ans = log(d)/(pop*H);
-  */
   double ans = 0;
   return(ans);
 }
 double CQF::next_pop(){
-  /*
-  double ans = genpt*fs/(H*H*(nsp+nsm));
-  */
   double ans = 1.0;
   return(ans);
 }
@@ -288,7 +254,3 @@ void CQF::print_loaded_data(){
     cout<<endl;
   }
 }
-//need :
-// ctm.nc_pget(i) ctm.fcc_dgam(sigam)
-// fsc nspc
-//ctm.drefresh(data.epl(d),data.ecpl(d),data.tpl(d));
