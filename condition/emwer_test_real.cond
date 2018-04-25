@@ -3,7 +3,6 @@ repl:1,4,5,4,5,1,5,4,5,1
 genl:0,0,0,15,15,23,27,37,37,37
 slc:0
 opt:s
-disc:200
-chrom:all
-rbd:0,1
-noiter:true
+disc:100
+rbd:0.05,0.95
+allele:positive

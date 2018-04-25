@@ -172,6 +172,7 @@ int main(int argc,char* argv[]){
       int t_num = omp_get_thread_num();
       data_vec[t_num].load_line(d);
       rlt_vec[d] = estimate_process(opt_flag, psize, slc, dom, genpt, init_snum, beta, dom_beta, afs, data_vec[t_num], avd_flag,bdr);
+      cout<<"Comp SNP "<<d<<endl;
     }
     string rlt = accumulate(rlt_vec.begin(),rlt_vec.end(),string(""));
     ofs << rlt;

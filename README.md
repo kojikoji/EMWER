@@ -49,7 +49,7 @@ pop:200
 slc:0
 dom:0.5
 opt:s
-disc:200
+disc:100
 rbd:0.05,0.95
 allele:positive
 ```
