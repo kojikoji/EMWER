@@ -45,7 +45,6 @@ BDR::BDR(Vec origin_theta,vector<int> _snum_list,bool dom_opt,double dom_min,dou
     }
     upper_list.push_back(upper);
     lower_list.push_back(lower);
-    cout<<"snum"<<snum<<"lower"<<lower<<"upper"<<upper<<endl;
   }
 }
 bool BDR::increase_state(){

@@ -131,4 +131,6 @@ if __name__ == "__main__":
     parser.add_argument('--bound', '-b',type=str,default="0,1",help='bouder of allele frequency')
     parser.add_argument('--disc', '-d',type=int,default=50,help='discretization of allele frequency distribution')
     args = parser.parse_args()
+    print("Start data processing")
     sync_to_dat(args.input,args.output,args.ref,args.afs,args.genlist.split(','),args.replist.split(','),args.disc,args.bound)
+    print("End data processing")
