@@ -1,6 +1,5 @@
 #-*- coding: utf-8 -*-
 import os
-import subprocess
 # if there is no directory, make it 
 def safe_mkdir(dirname,rflag = False):
     if os.path.exists(dirname)!=True:
@@ -10,7 +9,7 @@ class List_mkdir:
     def list_mkdir(self,root_dir='',tag='',list_dir_key=''):
         if root_dir != '':
             self.root_dir = root_dir
-        # タグがあれば追加
+        # if tag is specified, add the tag to root dir name 
         if tag != '':
             self.root_dir = self.root_dir + '/' + tag + '/'
         if list_dir_key != '':

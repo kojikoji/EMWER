@@ -2,9 +2,9 @@
 #define WDT
 #include<vector>
 //#include<Matrix.h>
-#define EIGEN_NO_DEBUG // コード内のassertを無効化．
-#define EIGEN_DONT_PARALLELIZE // 並列を無効化．
-#define EIGEN_MPL2_ONLY // LGPLライセンスのコードを使わない．
+#define EIGEN_NO_DEBUG
+#define EIGEN_DONT_PARALLELIZE
+#define EIGEN_MPL2_ONLY
 
 #include <Eigen/Core>
 //#include <Eigen/Dense>

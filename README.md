@@ -4,8 +4,15 @@ This is the repository for an EM algorithm of Wright-Fisher model for analyzing 
 From ER data, which contain allele frequency paths during experimental evolution for numerous SNPs, this program can estimate population genetics parameters i.e.) effective population size, selection coefficients and dominance parameters for each SNP or all SNPs.
 
 ## Installation
+Please, check and install the required python libraries,
+using `pip`.
+```shell-session:
+$ pip install scipy numpy subprocess32
+```
+
 Please, check configuration using the following command,
-and install the required libraries.
+and resolve the dependencies.
+We note that EMWER depends on C++14 and OpenMP.
 
 ```shell-session:
 $ ./waf configure
@@ -70,6 +77,16 @@ Each row can specify each experimental condition.;
 `rbd` specifies the upper and lower limit of allele frequency of population at 0th generation.
 
 `allele` specifies the allele which selection coefficients and dominance parameters are defined for. When you specify `allele` as `positive`, EMWER calculate the parameters for positively selected alleles, which results in positive values for estimated selection coefficients. When you specify `allele` as `variant`, EMWER calculate the parameters for variant alleles.
+
+## Requirements
+
+
+## LICENSE
+EMWER is licensed under [GLP Version 3](LICENSE).
+Each external libraries used in this repository are licensed as below:
+- [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) is primarily licensed under [MPL2](Eigen/COPYING.MPL2), although some part of third party code are licensed under [BSD](Eigen/COPYING.BSD) or [LGPL](Eigen/COPYING.LGPL) licenses. Please, see [original license description](Eigen/COPYING.README) for detail.
+- [cmdline](https://github.com/tanakh/cmdline) is licensed under [Modified BSD](cmdline/LICENSE).
+
 
 
 

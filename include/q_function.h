@@ -5,20 +5,17 @@
 #include<transition_matrix.h>
 
 typedef Eigen::MatrixXd Mat_st;
-//typedef Matrix<std::complex<double>> Mat_stc;
 typedef Eigen::MatrixXd Vec_st;
-//typedef Matrix<std::complex<double>> Vec_stc;
 typedef Eigen::MatrixXd TVec_st;
 typedef Eigen::MatrixXd Vec_mst;
 typedef Eigen::MatrixXd Vec_3d;
 typedef Eigen::MatrixXd Vec;
 
-#define EIGEN_NO_DEBUG // コード内のassertを無効化．
-#define EIGEN_DONT_PARALLELIZE // 並列を無効化．
-#define EIGEN_MPL2_ONLY // LGPLライセンスのコードを使わない．
+#define EIGEN_NO_DEBUG
+#define EIGEN_DONT_PARALLELIZE
+#define EIGEN_MPL2_ONLY
 
 #include <Eigen/Core>
-//#include <Eigen/Dense>
 #include <Eigen/Eigenvalues> 
 
 //caluculate q function
@@ -28,7 +25,6 @@ class CQF{
   //STNUM-1
   int MSTNUM;
   double H;
-  //CTM<double> ctmr;
   CTM<std::complex<double>> ctmr;
   Data data;
   double dom_beta;
@@ -65,17 +61,6 @@ class CQF{
   Mat_st make_info_mat(Vec theta);
   double next_slc();
   double next_pop();
-  /*
-  //for continuous discrete fix
-  void cont_dis_set(double _pop,double _slc,double _dom);
-  double lpdis(int i, int j);
-  double lpdis_dpop(int i, int j);
-  double lpdis_dslc(int i, int j);
-  void drefresh(double _pop,double _slc,double _dom);
-  double dlh();
-  double dlh_dpop();
-  double dlh_dslc();
-  */
   //get log likelihood
   double get_log_pe();
   Vec_st get_pz();

@@ -1,10 +1,8 @@
 #-*- coding: utf-8 -*-
 import sys
-#sys.path.append("../cproc")
 from script.cproc import cproc 
 import os
 import argparse
-#from script.sim_line_independent import Sim_line_independent
 from script.condition_controler import Condtion_controler
 from script.list_mkdir import List_mkdir
 from script.estimator import Estimator
