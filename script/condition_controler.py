@@ -64,3 +64,6 @@ class Condtion_controler:
                 genl.append(gen)
         self.state['genl'] = ",".join(genl)
         self.state['repl'] = ",".join(repl)
+
+    def cond_checker(self, cond, val='t'):
+        return((cond in self.state) and (self.state[cond] == val))

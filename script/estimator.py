@@ -46,4 +46,7 @@ class Estimator:
         # one estimate for all data
         if 'all' in self.state:
             cmd = " ".join([cmd,"-a"])            
+        # define selection for variant allele
+        if self.cond_checker("allele","variant"):
+            cmd = " ".join([cmd,"-v"])
         return(cmd)

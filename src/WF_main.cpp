@@ -45,13 +45,13 @@ void output_process(ofstream &ofs,Vec_3d theta, double chisq ,double msec){
   ofs<<"\t"<<msec;
   ofs <<endl;
 }
-string estimate_process(vector<bool> opt_flag,double psize,double slc, double dom,double genpt,int snum, double beta, double dom_beta,vector<double> afs,Data& data, bool avd_flag,BDR bdr, string oafs_file = ""){
+string estimate_process(vector<bool> opt_flag,double psize,double slc, double dom,double genpt,int snum, double beta, double dom_beta,vector<double> afs,Data& data, bool variant_flag,BDR bdr, string oafs_file = ""){
     WFE wfe;
     Vec_3d ftheta(3,1);
     ftheta(0) = psize;
     ftheta(1) = slc;
     ftheta(2) = dom;
-    wfe.optimize(data,ftheta,opt_flag,genpt,snum,afs,bdr,beta, dom_beta,avd_flag);
+    wfe.optimize(data,ftheta,opt_flag,genpt,snum,afs,bdr,beta, dom_beta,variant_flag);
     Vec_3d theta = wfe.ans_get();
     Vec_3d est_var = wfe.estimate_variance();
     double chisq = wfe.stat_chi2();
@@ -94,6 +94,7 @@ int main(int argc,char* argv[]){
   p.add<string>("fopt", 'f', "flag for optimization p: population s: selection d:dominance a: allele frequency spectrum",false,"s");
   p.add("allfile", 'a', "estimate one parameter from file of all");
   p.add("fix", 'l', "fix discretization");
+  p.add("variant", 'v', "define the selection value for variant allele");
   p.add("help", 0, "print help");
   if (!p.parse(argc, argv)||p.exist("help")){
     std::cout<<p.error_full()<<p.usage();
@@ -117,6 +118,11 @@ int main(int argc,char* argv[]){
   if(p.exist("afs")){
     afs = afs_reader(p.get<string>("afs"));
   }
+  // selection is defined for variant or not
+  bool variant_flag = false;
+  if(p.exist("variant")){
+    variant_flag = true;
+  }
   ofstream ofs;
   ofs.open(ofname);
   string opt_code = p.get<string>("fopt");
@@ -132,10 +138,6 @@ int main(int argc,char* argv[]){
   }  
   if(opt_code.find("a") != string::npos){
     opt_flag[3] = true;
-  }
-  bool avd_flag = false;
-  if(opt_code.find("v") != string::npos){
-    avd_flag = true;
   }
   Data data;
   data.read_file(fname);
@@ -158,7 +160,7 @@ int main(int argc,char* argv[]){
   BDR bdr(ftheta,snum_list,opt_flag[2],dom_min,dom_max);
   if(p.exist("allfile")){
     data.load_all();
-    string rlt = estimate_process(opt_flag, psize, slc, dom, genpt, init_snum, beta, dom_beta, afs, data,avd_flag,bdr,p.get<string>("oafs"));
+    string rlt = estimate_process(opt_flag, psize, slc, dom, genpt, init_snum, beta, dom_beta, afs, data,variant_flag,bdr,p.get<string>("oafs"));
     ofs << rlt;
   }else{
     vector<Data> data_vec;
@@ -171,7 +173,7 @@ int main(int argc,char* argv[]){
     for(int d = 0;d < itr_num;d++){//data
       int t_num = omp_get_thread_num();
       data_vec[t_num].load_line(d);
-      rlt_vec[d] = estimate_process(opt_flag, psize, slc, dom, genpt, init_snum, beta, dom_beta, afs, data_vec[t_num], avd_flag,bdr);
+      rlt_vec[d] = estimate_process(opt_flag, psize, slc, dom, genpt, init_snum, beta, dom_beta, afs, data_vec[t_num], variant_flag,bdr);
       cout<<"Comp SNP "<<d<<endl;
     }
     string rlt = accumulate(rlt_vec.begin(),rlt_vec.end(),string(""));

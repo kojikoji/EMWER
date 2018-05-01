@@ -71,7 +71,7 @@ void WFE::load_data(Data& data){
 void WFE::data_clear(){
   cqf.data_clear();
 }
-void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt,int _snum,vector<double> afs,BDR bdr, double beta, double dom_beta,bool avd_flag){
+void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt,int _snum,vector<double> afs,BDR bdr, double beta, double dom_beta,bool variant_flag){
   sign_slc = 1;
   opt_flag = _opt_flag;
   genpt = _genpt;
@@ -96,7 +96,7 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
     est_upper = 1000;
   }
   int count = 0;
-  //cout<<lh<<endl;
+  //cout<<lh<<e\ndl;
   bool end_flag;
   int safe_count = 0;
   double plh;
@@ -190,6 +190,11 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
   if(calc_fail){
     cout<<"calc failure"<<endl;
     sign_slc = 0;
+  }
+  if(variant_flag && (sign_slc == -1)){
+    theta(1) = -theta(1)/(1+theta(1));
+    theta(2) = 1 - theta(2);
+    cqf.arefresh(theta);
   }
 }
 Vec_3d WFE::ans_get(){
