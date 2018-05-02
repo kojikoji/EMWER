@@ -150,7 +150,7 @@ int main(int argc,char* argv[]){
   
   vector<int> snum_list;
   int init_snum = 20;
-  if(p.exist("fix") || opt_flag[0]){
+  if(p.exist("fix") || opt_flag[0] || ftheta(1) != 0){
     cout<<"the number of states is fixed"<<endl;
     init_snum = snum;
   } 

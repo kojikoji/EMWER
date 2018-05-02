@@ -101,7 +101,6 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
   int safe_count = 0;
   double plh;
   Vec_3d ptheta;
-  double  sdlt = 1.0e-3*snum;
   do{
     //init snum changer
     bool snum_change = false;
@@ -114,11 +113,10 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
       if(fail){
 	snum_change = true;
       }
-      sdlt = 0.1;
       int sign_ptheta = (qfun_dslc > 0) - (qfun_dslc < 0);
       double qfun_dslc_ptheta = qfun_dslc;
       // when selection become negative, change the allele for caluculation
-      if(qfun_dslc < 0 && count==0){
+      if(qfun_dslc < 0 && count==0 && ftheta(1) <= 0){
 	cqf.change_allele();
 	cqf.arefresh(theta);
 	fail = refresh(ptheta);
