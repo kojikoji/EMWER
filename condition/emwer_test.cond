@@ -4,5 +4,6 @@ genl:0,0,0,15,15,23,27,37,37,37
 slc:0
 opt:s
 disc:100
+thread:2
 rbd:0.05,0.95
-allele:positive
+allele:variant

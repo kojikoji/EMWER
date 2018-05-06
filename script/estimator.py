@@ -43,6 +43,8 @@ class Estimator:
         cmd = " ".join([cmd,"-o",ofn])
         #which parameter estimate
         cmd = " ".join([cmd,"-f",self.state['opt']])        
+        #which parameter estimate
+        cmd = " ".join([cmd,"-t",self.state['thread']])        
         # one estimate for all data
         if 'all' in self.state:
             cmd = " ".join([cmd,"-a"])            
