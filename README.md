@@ -78,15 +78,18 @@ Each row can specify each experimental condition.;
 
 `allele` specifies the allele which selection coefficients and dominance parameters are defined for. When you specify `allele` as `positive`, EMWER calculate the parameters for positively selected alleles, which results in positive values for estimated selection coefficients. When you specify `allele` as `variant`, EMWER calculate the parameters for variant alleles.
 
-## Requirements
-
+## External libraries
+This repository includes the code of three external libraries.
+- [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) is a C++ library for linear algebra. The code is included [here](Eigen).
+- [cmdline](https://github.com/tanakh/cmdline) is a command line parser, which is implemented in C++. The code is included [here](cmdline).
+- [L-BFGS-B](http://users.iems.northwestern.edu/~nocedal/lbfgsb.html) is  a limited-memory quasi-Newton code for bound-constrained optimization, which is implemented in Fortran. We used it after converting it into C code by [f2c](http://www.netlib.org/f2c/). The code is included [here](lbfgsb).
 
 ## LICENSE
 EMWER is licensed under [GLP Version 3](LICENSE).
-Each external libraries used in this repository are licensed as below:
-- [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) is primarily licensed under [MPL2](Eigen/COPYING.MPL2), although some part of third party code are licensed under [BSD](Eigen/COPYING.BSD) or [LGPL](Eigen/COPYING.LGPL) licenses. Please, see [original license description](Eigen/COPYING.README) for detail.
+External libraries used in this repository are licensed as below:
+- [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) is primarily licensed under [MPL2](Eigen/COPYING.MPL2), although some part of third party code are licensed under [BSD](Eigen/COPYING.BSD) or [LGPL](Eigen/COPYING.LGPL) licenses. Please, see [the original license description](Eigen/COPYING.README) for detail.
 - [cmdline](https://github.com/tanakh/cmdline) is licensed under [Modified BSD](cmdline/LICENSE).
-
+- [L-BFGS-B](http://users.iems.northwestern.edu/~nocedal/lbfgsb.html) is  licensed under [New BSD License](lbfgsb/License.txt).
 
 
 
