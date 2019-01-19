@@ -20,7 +20,7 @@ def configure(conf):
 def build(bld):
     bld(features = 'cxx cprogram',
         source = 'src/transition_matrix.cpp src/data.cpp src/ctm_data_refresh.cpp src/wright_fisher_estimater.cpp src/q_function.cpp src/WF_main.cpp src/boundary.cpp',
-        include = ['include','Matrix/include'],
+        include = ['include','Eigen', 'cmdline', 'lbfgsb'],
         lib = ['lapack','blas','gfortran'],
 	cflags = ['-fopenmp','-stdlib=libc++'],
 	cxxflags = ['-Ofast','-fopenmp','-mavx','-march=native'],
