@@ -2,6 +2,7 @@
 BDR::BDR(Vec origin_theta,vector<int> _snum_list,bool dom_opt,double dom_min,double dom_max){
   snum_list = _snum_list;
   Vec theta = origin_theta;
+  cout<<"in"<<endl;
   dom_lower = theta(2);
   dom_upper = theta(2);
   if(dom_opt){
@@ -9,19 +10,19 @@ BDR::BDR(Vec origin_theta,vector<int> _snum_list,bool dom_opt,double dom_min,dou
     dom_upper = dom_max;
   }
   for(int snum : snum_list){
-    // change state number
+    // Change state number
     ctmr.init(snum);
     double upper = 1;
     double lower = -1;
     for(double n_dom = dom_lower;n_dom <= dom_upper; n_dom+= unit_dom){
       // change dominance
       theta(2) = n_dom;
-      // specify upper limits of selection
+      // specify upper limit
       double n_upper = 0;
       for(double n_slc = 0; n_slc < 1; n_slc += unit){
 	theta(1) = n_slc;
 	n_upper = theta(1) - 2*unit;
-	// the value at two steps before falilure
+	// 2 step before fail
 	if(ctmr.param_refresh(theta)){
 	  break;
 	}
@@ -29,12 +30,12 @@ BDR::BDR(Vec origin_theta,vector<int> _snum_list,bool dom_opt,double dom_min,dou
       if(n_upper < upper){
 	upper = n_upper;
       }
-      // specify lower limits of selection
+      // specify lower limit
       double n_lower = 0;
       for(double n_slc = 0; n_slc > -1; n_slc -= unit){
 	theta(1) = n_slc;
 	n_lower = theta(1) + 2*unit;
-	// the value at two steps before falilure
+	// 2 step before fail
 	if(ctmr.param_refresh(theta)){
 	  break;
 	}

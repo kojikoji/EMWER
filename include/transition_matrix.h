@@ -2,11 +2,12 @@
 #ifndef TM
 #define TM
 //#include<Matrix.h>
-#define EIGEN_NO_DEBUG 
-#define EIGEN_DONT_PARALLELIZE 
-#define EIGEN_MPL2_ONLY 
+#define EIGEN_NO_DEBUG // コード内のassertを無効化．
+#define EIGEN_DONT_PARALLELIZE // 並列を無効化．
+#define EIGEN_MPL2_ONLY // LGPLライセンスのコードを使わない．
 
 #include <Eigen/Core>
+//#include <Eigen/Dense>
 #include <Eigen/Eigenvalues> 
 
 #include <chrono>
@@ -15,6 +16,7 @@ using  Mat_st = Eigen::MatrixXd;
 using  Mat_stc = Eigen::MatrixXcd;
 using  Vec_st = Eigen::MatrixXd;
 using Vec_ist = Eigen::MatrixXd;
+//typedef Matrix<std::complex<double>> Vec_stc;
 using TVec_st =  Eigen::MatrixXd;
 using Vec_mst =  Eigen::MatrixXd;
 using Vec_3d = Eigen::MatrixXd;

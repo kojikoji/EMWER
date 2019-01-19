@@ -5,15 +5,17 @@
 #include<transition_matrix.h>
 
 typedef Eigen::MatrixXd Mat_st;
+//typedef Matrix<std::complex<double>> Mat_stc;
 typedef Eigen::MatrixXd Vec_st;
+//typedef Matrix<std::complex<double>> Vec_stc;
 typedef Eigen::MatrixXd TVec_st;
 typedef Eigen::MatrixXd Vec_mst;
 typedef Eigen::MatrixXd Vec_3d;
 typedef Eigen::MatrixXd Vec;
 
-#define EIGEN_NO_DEBUG
-#define EIGEN_DONT_PARALLELIZE
-#define EIGEN_MPL2_ONLY
+#define EIGEN_NO_DEBUG 
+#define EIGEN_DONT_PARALLELIZE 
+#define EIGEN_MPL2_ONLY 
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues> 
@@ -25,6 +27,7 @@ class CQF{
   //STNUM-1
   int MSTNUM;
   double H;
+  //CTM<double> ctmr;
   CTM<std::complex<double>> ctmr;
   Data data;
   double dom_beta;

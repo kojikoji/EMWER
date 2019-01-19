@@ -63,7 +63,8 @@ public:
   void load_data(Data& data);
   //give data which have start and end and time
   void data_clear();
-  void optimize(Data& data,Vec_3d theta,vector<bool> _opt_flag,double _genpt,int snum,vector<double> afs, BDR bdr, double beta=2, double dom_beta = 2, bool variant_flag = false);
+  void optimize(Data& data,Vec_3d theta,vector<bool> _opt_flag,double _genpt,int snum,vector<double> afs, BDR bdr, double beta=2, double dom_beta = 2, bool avd_flag = false, bool variant_flag = false);
+  void optimize_pop(Data& data,Vec_3d theta,vector<bool> _opt_flag,double _genpt,int snum,vector<double> afs, BDR bdr, double beta=2, double dom_beta = 2, bool avd_flag = false);
   //fix error of discrete and continuous model
   //void cont_dis_fix(Vec_3d ftheta,vector<bool> _opt_flag,double _genpt);
   //get optimized prameters

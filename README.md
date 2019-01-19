@@ -4,6 +4,7 @@ This is the repository for an EM algorithm of Wright-Fisher model for analyzing 
 From ER data, which contain allele frequency paths during experimental evolution for numerous SNPs, this program can estimate population genetics parameters i.e.) effective population size, selection coefficients and dominance parameters for each SNP or all SNPs.
 
 ## Installation
+We note that EMWER can be run by python2.7.
 Please, check and install the required python libraries,
 using `pip`.
 ```shell-session:
@@ -30,7 +31,7 @@ The executable file will be generated as `build/default/WF_main`
 Although you can execute the above executable file directly, we recommend executing our program through python script `EMWER.py` as below:
 
 ```shell-session
-$ python EMWER.py -c script/cond/emwer_test_real.cond -s data/real_data_test.sync
+$ python EMWER.py -c condition/emwer_test.cond -s data/real_data_test.sync
 ```
 The `-s` specifies the `synchronized file` (see detail in https://sourceforge.net/p/popoolation2/wiki/Tutorial/) of ER data. The `-c` specifies the file name of the `condition file`. The `-o` specifies the file name of the `estimation result`.
 

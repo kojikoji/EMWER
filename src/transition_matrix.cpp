@@ -12,6 +12,7 @@ void CTM<T>::init(int snum){
   ld.resize(STNUM,1);
   u_mat.resize(STNUM,STNUM);
   ui_mat.resize(STNUM,STNUM);
+  //cout<<"substi"<<endl;
   //c mean center
   rc_vec = Vec_st::Zero(1,STNUM);
   //p mean plus
@@ -40,6 +41,7 @@ void CTM<T>::init(int snum){
   lrpddom_vec = Vec_st::Zero(1,STNUM);
   //m mean minus
   lrmddom_vec = Vec_st::Zero(1,STNUM);
+  //cout<<"comp"<<endl;
 }
 template<class T>
 double CTM<T>::f_rq(double x){
@@ -358,6 +360,10 @@ bool CTM<T>::dd_refresh(Vec_3d theta){
 
   return(fail);
 }
+/* DGEEV prototype */
+extern void dgeev( char* jobvl, char* jobvr, int* n, double* a,
+                int* lda, double* wr, double* wi, double* vl, int* ldvl,
+                double* vr, int* ldvr, double* work, int* lwork, int* info );
 
 //ld and u and ui mat refreshed about inner
 template<class T>
@@ -435,5 +441,10 @@ Mat_st CTM<std::complex<double>>::make_exp_tr(double t){
   return((u_mat*eld_mat*ui_mat).real());
 }
 
+
+template<class T>
+Mat_st CTM<T>::make_exp_tr_num(double t,int num){
+  return(Mat_st::Zero(STNUM,STNUM));
+}
 template class CTM<double>;
 template class CTM<std::complex<double>>;

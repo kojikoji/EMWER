@@ -29,14 +29,11 @@ class Conducter_sim(Condtion_controler,List_mkdir,Estimator,File_namer):
         cond = self.cond_list[0]
         #set condtion
         self.set_cond(cond)
-        #convert to dat file
-        dat_file = self.make_name('dat',cond,'dat')
-        self.sync_to_dat(sync_file,dat_file,cond)
         self.est_init(self.est_keys)
         #make cond est
         self.set_est('wfe',self.cond)
         #estimate
-        self.do_est('wfe',dat_file,ofn,self.cond_est)
+        self.do_est('wfe',sync_file,ofn,self.cond_est)
         self.cp.exe()
 
 if __name__=="__main__":

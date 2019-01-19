@@ -39,7 +39,9 @@ class Estimator:
         cmd = "./build/default/WF_main "
         cmd = " ".join([cmd,"-d",self.state['disc']])
         cmd = " ".join([cmd,"-p",self.state['pop']])
-        cmd = " ".join([cmd,"-i",ifn])
+        cmd = " ".join([cmd,"--sync",ifn])
+        cmd = " ".join([cmd,"--sync_genl",self.state['genl']])
+        cmd = " ".join([cmd,"--sync_repl",self.state['repl']])
         cmd = " ".join([cmd,"-o",ofn])
         #which parameter estimate
         cmd = " ".join([cmd,"-f",self.state['opt']])        

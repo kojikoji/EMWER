@@ -94,7 +94,7 @@ bool CQF::arefresh(Vec theta){
   refresh(theta);
   bool fail = false;
   auto aref_process = [&](auto &ctm){
-    ctm.arefresh(theta);
+			ctm.arefresh(theta);
     //parameter reset
     log_pe = 0;
     double slog_pe = 0;
@@ -111,23 +111,23 @@ bool CQF::arefresh(Vec theta){
 	pe = ctm.pe_get();
 	if(pe < 0 || pe > 1.0){fail = true;cout<<"pe"<<pe<<endl;}
       }
-      log_pe += log(pe);
-      ctm.kapd_refresh();
-      if(afs_opt){
-	gam_vec = gam_vec + ctm.make_gam_vec(pz);
-      }
+	   log_pe += log(pe);
+	   ctm.kapd_refresh();
+	   if(afs_opt){
+	     gam_vec = gam_vec + ctm.make_gam_vec(pz);
+	   }
     }
     //slc prior
     log_pe += -dom_beta*slc*slc/2;
-    if(afs_opt){
-      cout<<pz<<endl;
-      gam_vec = gam_vec +(beta-1)*one_vec;
-      pz = (1/gam_vec.sum())*gam_vec;
-    }
-    ctm.tkap_mat_refresh(); 
-    fs_vec = ctm.make_fs_vec(); 
-    np_vec = ctm.make_np_vec(); 
-    nm_vec = ctm.make_nm_vec();
+	 if(afs_opt){
+	   cout<<pz<<endl;
+	   gam_vec = gam_vec +(beta-1)*one_vec;
+	   pz = (1/gam_vec.sum())*gam_vec;
+	 }
+	 ctm.tkap_mat_refresh(); 
+	 fs_vec = ctm.make_fs_vec(); 
+	 np_vec = ctm.make_np_vec(); 
+	 nm_vec = ctm.make_nm_vec();
     if(fs_vec.real().minCoeff() < 0){
       if(abs(fs_vec.real().minCoeff())/fs_vec.real().maxCoeff() > 0.01){
 	fail = true;cout<<"fs"<<endl;

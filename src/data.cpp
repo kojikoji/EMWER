@@ -28,6 +28,12 @@ void Data::dnum_check(int d){
 Data::Data(){
   dsize = 0;
   line_num = 0;
+  sync_base_idx_dict["A"] = 0;
+  sync_base_idx_dict["T"] = 1;
+  sync_base_idx_dict["C"] = 2;
+  sync_base_idx_dict["G"] = 3;
+  sync_base_idx_dict["N"] = 4;
+  
 }
 void Data::clear(){
   dsize = 0;
@@ -112,6 +118,7 @@ vector<Vec_st> Data::pabl(int d){
   return(pabll[d]);
 }
 void Data::read_file(std::string filename){
+  sync_mode = false;
   ifstream ifs( filename );
   if(!ifs ) {
     cout << "Error:Input data file not found" << endl;
@@ -126,10 +133,53 @@ void Data::read_file(std::string filename){
   }
 }
 
+void Data::read_sync(std::string filename, vector<int> sync_ridx_l, vector<int> _sync_t_l){
+  sync_mode = true;
+  sync_t_l = _sync_t_l;
+  // get_col_num
+  int col_num = sync_ridx_l.size();
+  // Get unique ridx_l
+  unique_ridx_l = sync_ridx_l;
+  sort(unique_ridx_l.begin(), unique_ridx_l.end());
+  unique_ridx_l.erase(unique(unique_ridx_l.begin(), unique_ridx_l.end()), unique_ridx_l.end());
+  // Mkae sync idx list for each replicate
+  for(int ridx : unique_ridx_l){
+    vector<int> col_idx_l;
+    for(int col_idx = 0; col_idx < col_num; col_idx++){
+      if(sync_ridx_l[col_idx] == ridx){
+	col_idx_l.push_back(col_idx);
+      }
+    }
+    col_idx_ll.push_back(col_idx_l);
+  }
+  // confirm file availability
+  ifstream ifs( filename );
+  if(!ifs ) {
+    cout << "Error:Input data file not found" << endl;
+    exit(-1);
+  }
+  // Load text
+  vector<vector<vector<double> > > data;
+  int n = 0;
+  string str;
+  while( getline( ifs, str ) ){
+    line_list.push_back(str);
+    line_num++;
+  }
+}
+
 void Data::load_line(int n, bool add_flag){
   if(!add_flag){
     clear();
   }
+  if(sync_mode){
+    load_sync_line(n);
+  }else{
+    load_dat_line(n);
+  }
+}
+
+void Data::load_dat_line(int n){
   string line = line_list[n];
   vector<string> data_list = split(line,'\t');
   for(auto itr = data_list.begin(); itr != data_list.end(); itr++){
@@ -143,6 +193,39 @@ void Data::load_line(int n, bool add_flag){
       double beta = std::stoi(val_list[3*d+1]);
       bpl.push_back(beta);
       double time = std::stoi(val_list[3*d+2]);
+      tpl.push_back(time);
+    }
+    add(apl,bpl,tpl);
+  }
+}
+
+void Data::load_sync_line(int n){
+  string line = line_list[n];
+  vector<string> txt_list = split(line,'\t');
+  if(txt_list.size() < sync_t_l.size() + 3){
+    cerr<<"Error: Inconsistent sync_repl and the number of sync file columns"<<endl;
+  }
+  for(int ridx = 0; ridx < unique_ridx_l.size(); ridx++){
+    vector<int> apl;
+    vector<int> bpl;
+    vector<double> tpl;
+    for(int col_idx : col_idx_ll[ridx]){
+      string allele_txt = txt_list[col_idx + 3];
+      vector<string> sval_list = split(allele_txt, ':');
+      int max_val = 0;
+      int summed_val = 0;
+      vector<int> val_list;
+      for(string sval : sval_list){
+	int val = stoi(sval);
+	val_list.push_back(val);
+	summed_val += val;
+      }
+      int ref_base_idx = sync_base_idx_dict[txt_list[2]];
+      double beta = val_list[ref_base_idx];
+      bpl.push_back(beta);
+      double alpha = summed_val - beta;
+      apl.push_back(alpha);
+      double time = sync_t_l[col_idx];
       tpl.push_back(time);
     }
     add(apl,bpl,tpl);

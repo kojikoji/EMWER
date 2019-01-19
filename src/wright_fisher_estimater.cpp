@@ -1,3 +1,4 @@
+//extern STNUM Vec_3d
 #include<iostream>
 #include<q_function.h>
 #include<wright_fisher_estimater.h>
@@ -12,6 +13,7 @@ bool WFE::refresh(Vec_st ntheta){
   qfun_dslc = 0;
   qfun_ddom = 0;
   bool fail = cqf.refresh(ntheta);
+  //,"qref");
   qfun += cqf.llh();
   //llh_d
   qfun_dpop += cqf.llh_dpop();
@@ -71,12 +73,11 @@ void WFE::load_data(Data& data){
 void WFE::data_clear(){
   cqf.data_clear();
 }
-void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt,int _snum,vector<double> afs,BDR bdr, double beta, double dom_beta,bool variant_flag){
+void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt,int _snum,vector<double> afs,BDR bdr, double beta, double dom_beta,bool avd_flag, bool variant_flag){
   sign_slc = 1;
   opt_flag = _opt_flag;
   genpt = _genpt;
   snum = _snum;
-  //setting for cqf
   double cqf_num = 1;
   lh = 0;
   cqf.init(genpt,snum,afs,beta, dom_beta);
@@ -96,11 +97,11 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
     est_upper = 1000;
   }
   int count = 0;
-  //cout<<lh<<e\ndl;
   bool end_flag;
   int safe_count = 0;
   double plh;
   Vec_3d ptheta;
+  double  sdlt = 1.0e-3*snum;
   do{
     //init snum changer
     bool snum_change = false;
@@ -113,10 +114,10 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
       if(fail){
 	snum_change = true;
       }
+      sdlt = 0.1;
       int sign_ptheta = (qfun_dslc > 0) - (qfun_dslc < 0);
       double qfun_dslc_ptheta = qfun_dslc;
-      // when selection become negative, change the allele for caluculation
-      if(qfun_dslc < 0 && count==0 && ftheta(1) <= 0){
+      if(qfun_dslc < 0 && count==0  && ftheta(1) <= 0){
 	cqf.change_allele();
 	cqf.arefresh(theta);
 	fail = refresh(ptheta);
@@ -127,7 +128,6 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
       double prop = 1.0;
       Vec_st sb_theta;
       int search_count = 0;
-      // search the boundary for the direction indicated by gradients
       sb_theta = ptheta;
       if(qfun_dslc > 0){
 	sb_theta(1) = bdr.get_upper();
@@ -135,8 +135,6 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
       if(qfun_dslc < 0){
 	sb_theta(1) = bdr.get_lower();
       }
-      // increase state number
-      // if gradient direction is same at the boundary for discretization
       refresh(sb_theta);
       int sign_bound = (qfun_dslc > 0) - (qfun_dslc < 0);
       if(sign_bound == sign_ptheta){
@@ -146,7 +144,6 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
       //snum change
       if(snum_change){
 	bool fail_increase = bdr.increase_state();
-	// stop estimation when state number reaches upper limit
 	if(fail_increase){
 	  theta = sb_theta;
 	  calc_fail = cqf.arefresh(theta);
@@ -164,8 +161,6 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
     }
     vector<double> sbound = {bdr.get_lower(),bdr.get_upper()};
     vector<double> dbound = {bdr.get_dlower(),bdr.get_dupper()};
-    //end bound setting
-    //steepest decent
     double c = 2.0;
     CMR cmr((*this),c,opt_flag);
     steepest_descent(cmr,sbound,dbound);
@@ -184,6 +179,10 @@ void WFE::optimize(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt
       cout<<"stop est"<<endl;
       calc_fail = true;
     }
+    if(opt_flag[0]){
+      cout<<theta(0)<<endl;
+    }
+
   }while(!end_flag && count < est_upper && !calc_fail);
   if(calc_fail){
     cout<<"calc failure"<<endl;
@@ -248,6 +247,7 @@ Vec_3d WFE::estimate_variance(){
     est_var(1,0) = -info_mat_inv(1,1);
   }else{
     est_var(0,0) = -1/num_dslcslc;
+    //ldss = est_var(0,0);
     if(!opt_flag[1] && opt_flag[0]){
       //theta change  pop
       Vec_3d theta_pop = theta;
@@ -261,4 +261,76 @@ Vec_3d WFE::estimate_variance(){
   }
   est_var(2,0) = sign_slc;
   return(est_var);
+}
+void WFE::optimize_pop(Data& data,Vec_3d ftheta,vector<bool> _opt_flag,double _genpt,int _snum,vector<double> afs,BDR bdr, double beta, double dom_beta,bool avd_flag){
+  sign_slc = 1;
+  opt_flag = _opt_flag;
+  genpt = _genpt;
+  snum = _snum;
+  //setting for cqf
+  double cqf_num = 1;
+  lh = 0;
+  cqf.init(genpt,snum,afs,beta, dom_beta);
+  cqf.load_data(data);
+  cqf.afs_opt = opt_flag[3];
+  pz_vec = cqf.get_pz();
+  theta = ftheta;
+  theta(0) = 50;
+  bool calc_fail = cqf.arefresh(theta);
+  lh = cqf.get_log_pe();
+  init_lh = lh;
+  init_snum = snum;
+  cout<<"first lh"<<lh<<endl;
+  double pop_dlt = 100;
+  double est_upper = 40;
+  if(opt_flag[0]==true){
+    est_upper = 1000;
+  }
+  int count = 0;
+  bool end_flag = false;
+  int safe_count = 0;
+  double plh = lh;
+  Vec_3d ptheta = theta;
+  double pplh = lh;
+  Vec_3d pptheta = theta;  
+  do{
+    bool snum_change = false;
+    //refresh parameter
+    pptheta = ptheta;
+    pplh = plh;
+    ptheta = theta;
+    plh = lh;
+    theta(0) += pop_dlt;
+    cout<<"new pop"<<theta(0)<<endl;
+    count++;
+    calc_fail = cqf.arefresh(theta);
+    lh = cqf.get_log_pe();
+    cout<<"new lh"<<lh<<endl;
+    Vec_3d res_vec = theta - ptheta;
+    if(lh < plh){
+      if(pop_dlt > 1){
+	pop_dlt /= 10;
+	plh = pplh;
+	ptheta = pptheta;
+	lh = pplh;
+	theta = pptheta;
+      }else{
+	end_flag = true;
+	lh = plh;
+	theta = ptheta;
+      }
+    }
+    cout<<"end flag"<<end_flag<<endl;
+    end_flag = end_flag || std::isnan(lh);
+    if(count >= est_upper){
+      cout<<"stop est"<<endl;
+      calc_fail = true;
+    }
+
+  }while(!end_flag && count < est_upper && !calc_fail);
+  if(calc_fail){
+    cout<<"calc failure"<<endl;
+    sign_slc = 0;
+  }
+  cout<<"STATES:"<<snum<<endl;
 }
