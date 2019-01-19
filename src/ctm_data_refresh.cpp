@@ -1,5 +1,3 @@
-//#include<Matrix.h>
-//using namespace std;
 #include <iostream>
 #include<transition_matrix.h>
 #include<random>
